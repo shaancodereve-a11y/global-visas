@@ -37,8 +37,8 @@ A secure multi-step visa application management system for Global Visas. Users c
 - `client/src/pages/admin.tsx` - Admin dashboard (manage all applications)
 
 ## Admin Credentials
-- Email: admin@globalvisas.com
-- Password: admin123
+- Email: shaan.codereve@gmail.com
+- Password: admin123!@#
 - Seeded via `script/seed-admin.ts`
 
 ## Environment Variables Needed
