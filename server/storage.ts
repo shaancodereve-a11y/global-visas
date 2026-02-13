@@ -33,6 +33,10 @@ export interface IStorage {
   createDocument(data: InsertDocument): Promise<Document>;
   getDocumentsByApplication(applicationId: string): Promise<Document[]>;
   deleteDocument(id: string): Promise<void>;
+
+  getAllAdmins(): Promise<User[]>;
+  updateUserRole(id: string, role: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -129,6 +133,19 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<void> {
     await db.delete(documents).where(eq(documents.id, id));
+  }
+
+  async getAllAdmins(): Promise<User[]> {
+    return db.select().from(users).where(eq(users.role, "admin"));
+  }
+
+  async updateUserRole(id: string, role: string): Promise<User | undefined> {
+    const [user] = await db.update(users).set({ role }).where(eq(users.id, id)).returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(desc(users.createdAt));
   }
 }
 

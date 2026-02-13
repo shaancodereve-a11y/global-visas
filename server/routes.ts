@@ -328,8 +328,8 @@ export async function registerRoutes(
   app.patch("/api/admin/applications/:id/status", requireAdmin, async (req: Request, res: Response) => {
     try {
       const { status, adminNotes } = req.body;
-      if (!status || !["pending", "approved", "rejected"].includes(status)) {
-        return res.status(400).json({ error: "Invalid status. Must be pending, approved, or rejected." });
+      if (!status || !["draft", "submitted", "pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status." });
       }
 
       const updateData: Record<string, unknown> = { status };
@@ -375,6 +375,122 @@ export async function registerRoutes(
       res.json(stats);
     } catch (error) {
       console.error("Admin stats error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/admins", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const admins = await storage.getAllAdmins();
+      res.json(admins.map(({ password, ...a }) => a));
+    } catch (error) {
+      console.error("Get admins error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/admins", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { z } = await import("zod");
+      const adminSchema = z.object({
+        email: z.string().email("Please enter a valid email"),
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        password: z.string().min(8, "Password must be at least 8 characters"),
+      });
+      const parsed = adminSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.errors[0].message });
+      }
+      const { email, firstName, lastName, password: rawPassword } = parsed.data;
+
+      const existing = await storage.getUserByEmail(email);
+      if (existing) {
+        if (existing.role === "admin") {
+          return res.status(400).json({ error: "This user is already an admin" });
+        }
+        const updated = await storage.updateUserRole(existing.id, "admin");
+        if (updated) {
+          const { password, ...userData } = updated;
+          return res.json(userData);
+        }
+      }
+
+      const hashedPassword = await bcrypt.hash(rawPassword, 10);
+      const newUser = await storage.createUser({ email, firstName, lastName, password: hashedPassword });
+      await storage.updateUserRole(newUser.id, "admin");
+      await storage.updateUserEmailVerified(newUser.id, true);
+      const { password, ...userData } = { ...newUser, role: "admin", emailVerified: true };
+      res.status(201).json(userData);
+    } catch (error) {
+      console.error("Create admin error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/admin/admins/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      if (req.params.id === req.user!.id) {
+        return res.status(400).json({ error: "You cannot remove your own admin access" });
+      }
+      const updated = await storage.updateUserRole(req.params.id as string, "applicant");
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json({ message: "Admin access removed" });
+    } catch (error) {
+      console.error("Remove admin error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/export", requireAdmin, async (_req: Request, res: Response) => {
+    try {
+      const apps = await storage.getAllApplications();
+
+      const sanitizeCsvCell = (value: string): string => {
+        let v = value;
+        if (/^[=+\-@\t\r]/.test(v)) {
+          v = "'" + v;
+        }
+        v = v.replace(/"/g, '""');
+        return `"${v}"`;
+      };
+
+      const csvHeaders = [
+        "Application ID",
+        "Applicant Name",
+        "Email",
+        "Status",
+        "Current Step",
+        "Admin Notes",
+        "Submitted At",
+        "Created At",
+        "Form Data",
+      ];
+      const csvRows = apps.map((app) => {
+        const name = app.user ? `${app.user.firstName} ${app.user.lastName}` : "Unknown";
+        const email = app.user?.email || "N/A";
+        const formDataStr = JSON.stringify(app.formData || {});
+        return [
+          sanitizeCsvCell(app.id),
+          sanitizeCsvCell(name),
+          sanitizeCsvCell(email),
+          sanitizeCsvCell(app.status),
+          String(app.currentStep),
+          sanitizeCsvCell(app.adminNotes || ""),
+          app.submittedAt ? new Date(app.submittedAt).toISOString() : "",
+          new Date(app.createdAt).toISOString(),
+          sanitizeCsvCell(formDataStr),
+        ].join(",");
+      });
+
+      const csv = [csvHeaders.join(","), ...csvRows].join("\n");
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename=applications_${new Date().toISOString().split("T")[0]}.csv`);
+      res.send(csv);
+    } catch (error) {
+      console.error("Export error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
