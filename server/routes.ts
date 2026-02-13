@@ -548,5 +548,30 @@ export async function registerRoutes(
     }
   });
 
+  async function seedAdminAccount() {
+    try {
+      const adminEmail = "shaan.codereve@gmail.com";
+      const existing = await storage.getUserByEmail(adminEmail);
+      if (!existing) {
+        const hashedPassword = await bcrypt.hash("admin123!@#", 10);
+        await storage.createUser({
+          email: adminEmail,
+          firstName: "Shaan",
+          lastName: "Admin",
+          password: hashedPassword,
+        });
+        const admin = await storage.getUserByEmail(adminEmail);
+        if (admin) {
+          await pool.query('UPDATE users SET role = $1 WHERE id = $2', ['admin', admin.id]);
+        }
+        console.log("Admin account seeded successfully");
+      }
+    } catch (error) {
+      console.error("Admin seeding error:", error);
+    }
+  }
+
+  await seedAdminAccount();
+
   return httpServer;
 }
