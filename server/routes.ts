@@ -89,15 +89,12 @@ export async function registerRoutes(
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      await storage.createUser({ email, firstName, lastName, password: hashedPassword });
+      const newUser = await storage.createUser({ email, firstName, lastName, password: hashedPassword });
+      await storage.updateUserEmailVerified(newUser.id, true);
 
-      const code = generateOtp();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-      await storage.createOtp(email, code, "verify", expiresAt);
-
-      await sendOtpEmail(email, code, "verify");
-
-      res.status(201).json({ message: "Account created. Please verify your email with the OTP sent.", email });
+      req.session.userId = newUser.id;
+      const { password: _, ...userData } = { ...newUser, emailVerified: true };
+      res.status(201).json(userData);
     } catch (error) {
       console.error("Signup error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -123,13 +120,9 @@ export async function registerRoutes(
         return res.status(401).json({ error: "Invalid email or password" });
       }
 
-      const code = generateOtp();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-      await storage.createOtp(email, code, "login", expiresAt);
-
-      await sendOtpEmail(email, code, "login");
-
-      res.json({ requiresOtp: true, email });
+      req.session.userId = user.id;
+      const { password: _, ...userData } = user;
+      res.json(userData);
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
