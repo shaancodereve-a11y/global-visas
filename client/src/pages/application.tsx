@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Printer, ArrowLeft, ArrowRight, Save, Loader2, Plus, X, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import logoPath from "@assets/GLOBAL-VISA-logo_1771013259487.webp";
@@ -84,7 +85,7 @@ function TermsContent() {
 }
 
 const COUNTRIES = [
-  "Afghanistan", "Albania", "Algeria", "Argentina", "Armenia", "Austria", "Azerbaijan",
+  "Afghanistan", "Albania", "Algeria", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
   "Bahrain", "Bangladesh", "Belarus", "Belgium", "Bolivia", "Bosnia and Herzegovina",
   "Brazil", "Brunei", "Bulgaria", "Cambodia", "Cameroon", "Canada", "Chile", "China",
   "Colombia", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Ecuador",
@@ -106,27 +107,30 @@ const COUNTRIES = [
 const LEGAL_STATUSES = [
   "Citizen",
   "Permanent Resident",
-  "Temporary Resident",
-  "Student Visa Holder",
-  "Work Visa Holder",
-  "Tourist / Visitor",
-  "Refugee / Asylum Seeker",
-  "Diplomat",
-  "Undocumented",
+  "Visitor",
+  "Student",
+  "Work Visa",
+  "No Legal Status",
   "Other",
 ];
 
 const VISIT_REASONS = [
-  "Tourism / Holiday",
-  "Visiting family / relatives",
-  "Visiting friends",
-  "Business meetings / conferences",
-  "Attending an event or function",
-  "Medical treatment",
-  "Study or training (short-term)",
-  "Volunteer work",
-  "Transit through Australia",
-  "Attending a wedding or funeral",
+  "Business",
+  "Tourism",
+  "Family Visit",
+  "Study",
+  "Religious Event",
+  "Other",
+];
+
+const GROUP_TYPES = [
+  "Entertainment",
+  "Family",
+  "Friends",
+  "Incentive Tour",
+  "School / Study",
+  "Sports Team / Sports Event",
+  "Work / Employer",
   "Other",
 ];
 
@@ -199,13 +203,158 @@ function Step1Terms({ formData, updateFormData }: StepProps) {
   );
 }
 
+function GroupDetailsDialog({
+  open,
+  onOpenChange,
+  formData,
+  updateFormData,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  formData: FormData;
+  updateFormData: (updates: FormData) => void;
+}) {
+  const [groupCreated, setGroupCreated] = useState<string>(
+    (formData.groupAlreadyCreated as string) || ""
+  );
+  const [groupId, setGroupId] = useState<string>(
+    (formData.groupId as string) || ""
+  );
+  const [groupName, setGroupName] = useState<string>(
+    (formData.groupName as string) || ""
+  );
+  const [groupType, setGroupType] = useState<string>(
+    (formData.groupType as string) || ""
+  );
+
+  useEffect(() => {
+    if (open) {
+      setGroupCreated((formData.groupAlreadyCreated as string) || "");
+      setGroupId((formData.groupId as string) || "");
+      setGroupName((formData.groupName as string) || "");
+      setGroupType((formData.groupType as string) || "");
+    }
+  }, [open, formData]);
+
+  const handleConfirm = () => {
+    const updates: FormData = { groupAlreadyCreated: groupCreated };
+    if (groupCreated === "yes") {
+      updates.groupId = groupId;
+      updates.groupName = undefined;
+      updates.groupType = undefined;
+    } else if (groupCreated === "no") {
+      updates.groupName = groupName;
+      updates.groupType = groupType;
+      updates.groupId = undefined;
+    }
+    updateFormData(updates);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-primary text-lg">Group details</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-primary">Group details</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>If you have previously created a group, select Yes and enter the Group ID. Otherwise select No to create a new group.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          <div>
+            <p className="text-sm mb-3">Has the group already been created?</p>
+            <RadioGroup
+              value={groupCreated}
+              onValueChange={(val) => setGroupCreated(val)}
+              className="flex items-center gap-6"
+              data-testid="radio-group-created"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="group-created-yes" data-testid="radio-group-created-yes" />
+                <Label htmlFor="group-created-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="group-created-no" data-testid="radio-group-created-no" />
+                <Label htmlFor="group-created-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {groupCreated === "yes" && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-sm">Group ID</Label>
+                <Input
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                  placeholder="Enter group ID"
+                  data-testid="input-group-id"
+                />
+              </div>
+            </div>
+          )}
+
+          {groupCreated === "no" && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Enter group name to create a new group</p>
+              <div className="space-y-2">
+                <Label className="text-sm">Group name</Label>
+                <Input
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Enter group name"
+                  data-testid="input-group-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Group type</Label>
+                <Select value={groupType} onValueChange={(val) => setGroupType(val)}>
+                  <SelectTrigger data-testid="select-group-type">
+                    <SelectValue placeholder="Select group type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GROUP_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+        </div>
+        <DialogFooter className="flex flex-row justify-between gap-2 sm:justify-between">
+          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-group-cancel">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} disabled={!groupCreated} data-testid="button-group-confirm">
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
   const outsideAustralia = formData.outsideAustralia as string | undefined;
+  const visaStream = formData.visaStream as string | undefined;
   const reasons = (formData.visitReasons as string[]) || [];
+  const [selectedReason, setSelectedReason] = useState("");
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
-  const addReason = (reason: string) => {
-    if (reason && !reasons.includes(reason)) {
-      updateFormData({ visitReasons: [...reasons, reason] });
+  const addReason = () => {
+    if (selectedReason && !reasons.includes(selectedReason)) {
+      updateFormData({ visitReasons: [...reasons, selectedReason] });
+      setSelectedReason("");
     }
   };
 
@@ -297,7 +446,7 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                 </div>
                 <p className="text-sm mb-3">Select the stream the applicant is applying for:</p>
                 <RadioGroup
-                  value={(formData.visaStream as string) || ""}
+                  value={visaStream || ""}
                   onValueChange={(val) => updateFormData({ visaStream: val })}
                   className="space-y-2"
                   data-testid="radio-visa-stream"
@@ -330,13 +479,56 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                 <p className="text-xs text-muted-foreground mt-2">
                   Note: Once the application has been lodged, the stream cannot be changed. For more information on each stream, click on the help icon above.
                 </p>
+
+                {visaStream === "frequent" && (
+                  <div className="mt-4 p-3 bg-accent/50 rounded-md space-y-3">
+                    <p className="text-sm font-medium">
+                      <span className="font-semibold">Note:</span> This stream has a higher application fee and is only available to applicants with a passport from an eligible country.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm">Select the applicant's initial purpose of stay</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Select whether the primary purpose is business or tourism</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <RadioGroup
+                      value={(formData.frequentPurpose as string) || ""}
+                      onValueChange={(val) => updateFormData({ frequentPurpose: val })}
+                      className="flex items-center gap-6"
+                      data-testid="radio-frequent-purpose"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="business" id="freq-business" data-testid="radio-freq-business" />
+                        <Label htmlFor="freq-business" className="text-sm cursor-pointer">Business</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="tourism" id="freq-tourism" data-testid="radio-freq-tourism" />
+                        <Label htmlFor="freq-tourism" className="text-sm cursor-pointer">Tourism</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+
+                {visaStream === "sponsored" && (
+                  <div className="mt-4 p-3 bg-accent/50 rounded-md">
+                    <p className="text-sm">
+                      <span className="font-semibold">Note:</span> The Sponsored Family stream has more restrictive conditions than the Tourist stream. In some cases a security bond may be requested. If you are planning to visit family, you can apply for the Tourist stream which does not require a bond and does not require formal sponsorship.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
                 <Label className="text-sm">List all reasons for visiting Australia</Label>
                 <div className="flex items-center gap-2">
                   <Select
-                    onValueChange={(val) => addReason(val)}
+                    value={selectedReason}
+                    onValueChange={(val) => setSelectedReason(val)}
                   >
                     <SelectTrigger className="flex-1" data-testid="select-visit-reason">
                       <SelectValue placeholder="Select a reason" />
@@ -347,6 +539,9 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button size="icon" variant="outline" onClick={addReason} disabled={!selectedReason} data-testid="button-add-reason">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
@@ -409,6 +604,91 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="group-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+
+                {formData.groupProcessing === "yes" && (
+                  <div className="mt-4 space-y-3">
+                    <Button variant="outline" size="sm" onClick={() => setGroupDialogOpen(true)} data-testid="button-select-group">
+                      Select group
+                    </Button>
+
+                    {formData.groupAlreadyCreated === "yes" && Boolean(formData.groupId) && (
+                      <p className="text-sm text-muted-foreground">
+                        Group ID: <span className="font-medium text-foreground">{String(formData.groupId)}</span>
+                      </p>
+                    )}
+                    {formData.groupAlreadyCreated === "no" && Boolean(formData.groupName) && (
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p>Group name: <span className="font-medium text-foreground">{String(formData.groupName)}</span></p>
+                        {Boolean(formData.groupType) && (
+                          <p>Group type: <span className="font-medium text-foreground">{String(formData.groupType)}</span></p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-semibold text-primary">Special category of entry</h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>This applies to foreign government representatives, United Nations travellers, or exempt group members.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-sm mb-3">
+                  Is the applicant travelling as a representative of a foreign government, travelling on a United Nations Laissez-Passer or a member of an exempt group?
+                </p>
+                <RadioGroup
+                  value={(formData.specialCategory as string) || ""}
+                  onValueChange={(val) => updateFormData({ specialCategory: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-special-category"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="special-yes" data-testid="radio-special-yes" />
+                    <Label htmlFor="special-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="special-no" data-testid="radio-special-no" />
+                    <Label htmlFor="special-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+
+                {formData.specialCategory === "yes" && (
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm font-medium text-primary">Select the special category of entry</p>
+                    <RadioGroup
+                      value={(formData.specialCategoryType as string) || ""}
+                      onValueChange={(val) => updateFormData({ specialCategoryType: val })}
+                      className="space-y-2"
+                      data-testid="radio-special-category-type"
+                    >
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="foreign_gov" id="cat-foreign-gov" className="mt-0.5" data-testid="radio-cat-foreign-gov" />
+                        <Label htmlFor="cat-foreign-gov" className="text-sm cursor-pointer leading-relaxed">
+                          Travelling as a foreign government representative
+                        </Label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="un_laissez" id="cat-un" className="mt-0.5" data-testid="radio-cat-un" />
+                        <Label htmlFor="cat-un" className="text-sm cursor-pointer leading-relaxed">
+                          Travelling on a United Nations Laissez-Passer
+                        </Label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="exempt_group" id="cat-exempt" className="mt-0.5" data-testid="radio-cat-exempt" />
+                        <Label htmlFor="cat-exempt" className="text-sm cursor-pointer leading-relaxed">
+                          Member of an exempt group
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -478,41 +758,17 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-semibold text-primary">Special category of entry</h3>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>This applies to foreign government representatives, United Nations travellers, or exempt group members.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <p className="text-sm mb-3">
-                  Is the applicant travelling as a representative of a foreign government, travelling on a United Nations Laissez-Passer or a member of an exempt group?
-                </p>
-                <RadioGroup
-                  value={(formData.specialCategory as string) || ""}
-                  onValueChange={(val) => updateFormData({ specialCategory: val })}
-                  className="flex items-center gap-6"
-                  data-testid="radio-special-category"
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="yes" id="special-yes" data-testid="radio-special-yes" />
-                    <Label htmlFor="special-yes" className="text-sm cursor-pointer">Yes</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="no" id="special-no" data-testid="radio-special-no" />
-                    <Label htmlFor="special-no" className="text-sm cursor-pointer">No</Label>
-                  </div>
-                </RadioGroup>
-              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <GroupDetailsDialog
+        open={groupDialogOpen}
+        onOpenChange={setGroupDialogOpen}
+        formData={formData}
+        updateFormData={updateFormData}
+      />
     </div>
   );
 }
