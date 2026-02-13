@@ -1,38 +1,135 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import {
+  type User,
+  type InsertUser,
+  type OtpCode,
+  type Application,
+  type InsertApplication,
+  type Document,
+  type InsertDocument,
+  users,
+  otpCodes,
+  applications,
+  documents,
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserEmailVerified(id: string, verified: boolean): Promise<void>;
+
+  createOtp(email: string, code: string, type: string, expiresAt: Date): Promise<OtpCode>;
+  getValidOtp(email: string, code: string, type: string): Promise<OtpCode | undefined>;
+  markOtpUsed(id: string): Promise<void>;
+
+  createApplication(data: InsertApplication): Promise<Application>;
+  getApplication(id: string): Promise<Application | undefined>;
+  getApplicationsByUser(userId: string): Promise<Application[]>;
+  getAllApplications(): Promise<(Application & { user?: User })[]>;
+  updateApplication(id: string, data: Partial<Application>): Promise<Application | undefined>;
+
+  createDocument(data: InsertDocument): Promise<Document>;
+  getDocumentsByApplication(applicationId: string): Promise<Document[]>;
+  deleteDocument(id: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async updateUserEmailVerified(id: string, verified: boolean): Promise<void> {
+    await db.update(users).set({ emailVerified: verified }).where(eq(users.id, id));
+  }
+
+  async createOtp(email: string, code: string, type: string, expiresAt: Date): Promise<OtpCode> {
+    const [otp] = await db.insert(otpCodes).values({ email, code, type, expiresAt }).returning();
+    return otp;
+  }
+
+  async getValidOtp(email: string, code: string, type: string): Promise<OtpCode | undefined> {
+    const [otp] = await db
+      .select()
+      .from(otpCodes)
+      .where(
+        and(
+          eq(otpCodes.email, email),
+          eq(otpCodes.code, code),
+          eq(otpCodes.type, type),
+          eq(otpCodes.used, false)
+        )
+      );
+    if (otp && new Date(otp.expiresAt) > new Date()) {
+      return otp;
+    }
+    return undefined;
+  }
+
+  async markOtpUsed(id: string): Promise<void> {
+    await db.update(otpCodes).set({ used: true }).where(eq(otpCodes.id, id));
+  }
+
+  async createApplication(data: InsertApplication): Promise<Application> {
+    const [app] = await db.insert(applications).values(data).returning();
+    return app;
+  }
+
+  async getApplication(id: string): Promise<Application | undefined> {
+    const [app] = await db.select().from(applications).where(eq(applications.id, id));
+    return app;
+  }
+
+  async getApplicationsByUser(userId: string): Promise<Application[]> {
+    return db.select().from(applications).where(eq(applications.userId, userId)).orderBy(desc(applications.createdAt));
+  }
+
+  async getAllApplications(): Promise<(Application & { user?: User })[]> {
+    const results = await db
+      .select()
+      .from(applications)
+      .leftJoin(users, eq(applications.userId, users.id))
+      .orderBy(desc(applications.createdAt));
+
+    return results.map((r) => ({
+      ...r.applications,
+      user: r.users || undefined,
+    }));
+  }
+
+  async updateApplication(id: string, data: Partial<Application>): Promise<Application | undefined> {
+    const [app] = await db
+      .update(applications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(applications.id, id))
+      .returning();
+    return app;
+  }
+
+  async createDocument(data: InsertDocument): Promise<Document> {
+    const [doc] = await db.insert(documents).values(data).returning();
+    return doc;
+  }
+
+  async getDocumentsByApplication(applicationId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.applicationId, applicationId));
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    await db.delete(documents).where(eq(documents.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
