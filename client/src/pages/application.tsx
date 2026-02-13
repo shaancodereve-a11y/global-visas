@@ -135,13 +135,9 @@ const GROUP_TYPES = [
 ];
 
 const FURTHER_STAY_LENGTHS = [
-  "1 month",
-  "2 months",
-  "3 months",
-  "6 months",
-  "9 months",
-  "12 months",
-  "Other",
+  "Up to 3 months",
+  "Up to 6 months",
+  "Up to 12 months",
 ];
 
 interface StepProps {
@@ -758,6 +754,68 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                 </div>
               </div>
 
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-sm font-semibold text-primary">Special category of entry</h3>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>This applies to foreign government representatives, United Nations travellers, or exempt group members.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-sm mb-3">
+                  Is the applicant travelling as a representative of a foreign government, travelling on a United Nations Laissez-Passer or a member of an exempt group?
+                </p>
+                <RadioGroup
+                  value={(formData.specialCategory as string) || ""}
+                  onValueChange={(val) => updateFormData({ specialCategory: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-special-category-inside"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="special-yes-in" data-testid="radio-special-yes-inside" />
+                    <Label htmlFor="special-yes-in" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="special-no-in" data-testid="radio-special-no-inside" />
+                    <Label htmlFor="special-no-in" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+
+                {formData.specialCategory === "yes" && (
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm font-medium text-primary">Select the special category of entry</p>
+                    <RadioGroup
+                      value={(formData.specialCategoryType as string) || ""}
+                      onValueChange={(val) => updateFormData({ specialCategoryType: val })}
+                      className="space-y-2"
+                      data-testid="radio-special-category-type-inside"
+                    >
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="foreign_gov" id="cat-foreign-gov-in" className="mt-0.5" data-testid="radio-cat-foreign-gov-inside" />
+                        <Label htmlFor="cat-foreign-gov-in" className="text-sm cursor-pointer leading-relaxed">
+                          Travelling as a foreign government representative
+                        </Label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="un_laissez" id="cat-un-in" className="mt-0.5" data-testid="radio-cat-un-inside" />
+                        <Label htmlFor="cat-un-in" className="text-sm cursor-pointer leading-relaxed">
+                          Travelling on a United Nations Laissez-Passer
+                        </Label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <RadioGroupItem value="exempt_group" id="cat-exempt-in" className="mt-0.5" data-testid="radio-cat-exempt-inside" />
+                        <Label htmlFor="cat-exempt-in" className="text-sm cursor-pointer leading-relaxed">
+                          Member of an exempt group
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
