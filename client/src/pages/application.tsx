@@ -878,10 +878,8 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
 }
 
 const NAME_CHANGE_REASONS = [
+  "Deed poll",
   "Marriage",
-  "Divorce",
-  "Change by deed poll",
-  "Adoption",
   "Other",
 ];
 
