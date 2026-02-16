@@ -888,6 +888,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [otherNameFamily, setOtherNameFamily] = useState("");
   const [otherNameGiven, setOtherNameGiven] = useState("");
   const [otherNameReason, setOtherNameReason] = useState("");
+  const [editingOtherNameIndex, setEditingOtherNameIndex] = useState<number | null>(null);
   const otherNames = (formData.otherNames as Array<{ familyName: string; givenNames: string; reason: string }>) || [];
   const [citizenshipCountrySelect, setCitizenshipCountrySelect] = useState("");
   const otherCitizenships = (formData.otherCitizenships as string[]) || [];
@@ -899,18 +900,33 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [idCardCountry, setIdCardCountry] = useState("");
   const [idCardIssueDate, setIdCardIssueDate] = useState("");
   const [idCardExpiryDate, setIdCardExpiryDate] = useState("");
+  const [editingIdCardIndex, setEditingIdCardIndex] = useState<number | null>(null);
   const nationalIdCards = (formData.nationalIdCards as Array<{ familyName: string; givenNames: string; idNumber: string; country: string; issueDate: string; expiryDate: string }>) || [];
 
   const addNationalIdCard = () => {
-    const updated = [...nationalIdCards, {
-      familyName: idCardFamily,
-      givenNames: idCardGiven,
-      idNumber: idCardNumber,
-      country: idCardCountry,
-      issueDate: idCardIssueDate,
-      expiryDate: idCardExpiryDate,
-    }];
-    updateFormData({ nationalIdCards: updated });
+    if (editingIdCardIndex !== null) {
+      const updated = [...nationalIdCards];
+      updated[editingIdCardIndex] = {
+        familyName: idCardFamily,
+        givenNames: idCardGiven,
+        idNumber: idCardNumber,
+        country: idCardCountry,
+        issueDate: idCardIssueDate,
+        expiryDate: idCardExpiryDate,
+      };
+      updateFormData({ nationalIdCards: updated });
+      setEditingIdCardIndex(null);
+    } else {
+      const updated = [...nationalIdCards, {
+        familyName: idCardFamily,
+        givenNames: idCardGiven,
+        idNumber: idCardNumber,
+        country: idCardCountry,
+        issueDate: idCardIssueDate,
+        expiryDate: idCardExpiryDate,
+      }];
+      updateFormData({ nationalIdCards: updated });
+    }
     setIdCardFamily("");
     setIdCardGiven("");
     setIdCardNumber("");
@@ -918,6 +934,18 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
     setIdCardIssueDate("");
     setIdCardExpiryDate("");
     setIdCardDialogOpen(false);
+  };
+
+  const editNationalIdCard = (index: number) => {
+    const card = nationalIdCards[index];
+    setIdCardFamily(card.familyName);
+    setIdCardGiven(card.givenNames);
+    setIdCardNumber(card.idNumber);
+    setIdCardCountry(card.country);
+    setIdCardIssueDate(card.issueDate);
+    setIdCardExpiryDate(card.expiryDate);
+    setEditingIdCardIndex(index);
+    setIdCardDialogOpen(true);
   };
 
   const removeNationalIdCard = (index: number) => {
@@ -944,6 +972,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [travelDocPlaceOfIssue, setTravelDocPlaceOfIssue] = useState("");
   const [travelDocCountry, setTravelDocCountry] = useState("");
   const [travelDocIssueDate, setTravelDocIssueDate] = useState("");
+  const [editingTravelDocIndex, setEditingTravelDocIndex] = useState<number | null>(null);
   const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string; sex?: string; expiry?: string; placeOfIssue?: string; issueDate?: string }>) || [];
 
   const autoName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
@@ -952,7 +981,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
     if (travelDocType) {
       const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard" || travelDocType === "PL056(M56)";
       const hasAutoName = isAustralianDoc || travelDocType === "Passport" || travelDocType === "Titre de voyage" || travelDocType === "Other travel document";
-      const updated = [...otherTravelDocs, {
+      const newDoc = {
         docType: travelDocType,
         name: hasAutoName ? autoName : "",
         docNumber: travelDocType === "PL056(M56)" ? "PLO56" : travelDocNumber,
@@ -963,8 +992,15 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
         expiry: travelDocExpiry,
         placeOfIssue: travelDocPlaceOfIssue,
         issueDate: travelDocIssueDate,
-      }];
-      updateFormData({ otherTravelDocs: updated });
+      };
+      if (editingTravelDocIndex !== null) {
+        const updated = [...otherTravelDocs];
+        updated[editingTravelDocIndex] = newDoc;
+        updateFormData({ otherTravelDocs: updated });
+        setEditingTravelDocIndex(null);
+      } else {
+        updateFormData({ otherTravelDocs: [...otherTravelDocs, newDoc] });
+      }
       setTravelDocType("");
       setTravelDocNationality("");
       setTravelDocDob("");
@@ -976,6 +1012,21 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
       setTravelDocIssueDate("");
       setTravelDocDialogOpen(false);
     }
+  };
+
+  const editTravelDoc = (index: number) => {
+    const doc = otherTravelDocs[index];
+    setTravelDocType(doc.docType);
+    setTravelDocNationality(doc.nationality);
+    setTravelDocDob(doc.dob);
+    setTravelDocNumber(doc.docNumber);
+    setTravelDocSex(doc.sex || "");
+    setTravelDocExpiry(doc.expiry || "");
+    setTravelDocPlaceOfIssue(doc.placeOfIssue || "");
+    setTravelDocCountry(doc.country);
+    setTravelDocIssueDate(doc.issueDate || "");
+    setEditingTravelDocIndex(index);
+    setTravelDocDialogOpen(true);
   };
 
   const removeTravelDoc = (index: number) => {
@@ -998,18 +1049,26 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [identityDocType, setIdentityDocType] = useState("");
   const [identityDocNumber, setIdentityDocNumber] = useState("");
   const [identityDocCountry, setIdentityDocCountry] = useState("");
+  const [editingIdentityDocIndex, setEditingIdentityDocIndex] = useState<number | null>(null);
   const otherIdentityDocs = (formData.otherIdentityDocs as Array<{ familyName: string; givenNames: string; docType: string; idNumber: string; country: string }>) || [];
 
   const addIdentityDoc = () => {
     if (identityDocFamilyName || identityDocGivenNames) {
-      const updated = [...otherIdentityDocs, {
+      const newDoc = {
         familyName: identityDocFamilyName,
         givenNames: identityDocGivenNames,
         docType: identityDocType,
         idNumber: identityDocNumber,
         country: identityDocCountry,
-      }];
-      updateFormData({ otherIdentityDocs: updated });
+      };
+      if (editingIdentityDocIndex !== null) {
+        const updated = [...otherIdentityDocs];
+        updated[editingIdentityDocIndex] = newDoc;
+        updateFormData({ otherIdentityDocs: updated });
+        setEditingIdentityDocIndex(null);
+      } else {
+        updateFormData({ otherIdentityDocs: [...otherIdentityDocs, newDoc] });
+      }
       setIdentityDocFamilyName("");
       setIdentityDocGivenNames("");
       setIdentityDocType("");
@@ -1017,6 +1076,17 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
       setIdentityDocCountry("");
       setIdentityDocDialogOpen(false);
     }
+  };
+
+  const editIdentityDoc = (index: number) => {
+    const doc = otherIdentityDocs[index];
+    setIdentityDocFamilyName(doc.familyName);
+    setIdentityDocGivenNames(doc.givenNames);
+    setIdentityDocType(doc.docType);
+    setIdentityDocNumber(doc.idNumber);
+    setIdentityDocCountry(doc.country);
+    setEditingIdentityDocIndex(index);
+    setIdentityDocDialogOpen(true);
   };
 
   const removeIdentityDoc = (index: number) => {
@@ -1038,13 +1108,29 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
 
   const addOtherName = () => {
     if (otherNameFamily || otherNameGiven) {
-      const updated = [...otherNames, { familyName: otherNameFamily, givenNames: otherNameGiven, reason: otherNameReason }];
-      updateFormData({ otherNames: updated });
+      if (editingOtherNameIndex !== null) {
+        const updated = [...otherNames];
+        updated[editingOtherNameIndex] = { familyName: otherNameFamily, givenNames: otherNameGiven, reason: otherNameReason };
+        updateFormData({ otherNames: updated });
+        setEditingOtherNameIndex(null);
+      } else {
+        const updated = [...otherNames, { familyName: otherNameFamily, givenNames: otherNameGiven, reason: otherNameReason }];
+        updateFormData({ otherNames: updated });
+      }
       setOtherNameFamily("");
       setOtherNameGiven("");
       setOtherNameReason("");
       setOtherNameDialogOpen(false);
     }
+  };
+
+  const editOtherName = (index: number) => {
+    const name = otherNames[index];
+    setOtherNameFamily(name.familyName);
+    setOtherNameGiven(name.givenNames);
+    setOtherNameReason(name.reason);
+    setEditingOtherNameIndex(index);
+    setOtherNameDialogOpen(true);
   };
 
   const removeOtherName = (index: number) => {
@@ -1285,9 +1371,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                           <td className="px-3 py-2">{card.idNumber}</td>
                           <td className="px-3 py-2">{card.country}</td>
                           <td className="px-3 py-2">
-                            <Button variant="outline" size="sm" onClick={() => removeNationalIdCard(i)} data-testid={`button-remove-id-card-${i}`}>
-                              Remove
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <button type="button" className="text-sm text-primary hover:underline" onClick={() => editNationalIdCard(i)} data-testid={`button-edit-id-card-${i}`}>Edit</button>
+                              <button type="button" className="text-sm text-primary hover:underline" onClick={() => removeNationalIdCard(i)} data-testid={`button-delete-id-card-${i}`}>Delete</button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1302,6 +1389,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     setIdCardCountry("");
                     setIdCardIssueDate("");
                     setIdCardExpiryDate("");
+                    setEditingIdCardIndex(null);
                     setIdCardDialogOpen(true);
                   }} data-testid="button-add-id-card">
                     Add
@@ -1494,9 +1582,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                           <td className="px-3 py-2">{name.givenNames}</td>
                           <td className="px-3 py-2">{name.reason}</td>
                           <td className="px-3 py-2">
-                            <Button variant="outline" size="sm" onClick={() => removeOtherName(i)} data-testid={`button-remove-other-name-${i}`}>
-                              Remove
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <button type="button" className="text-sm text-primary hover:underline" onClick={() => editOtherName(i)} data-testid={`button-edit-other-name-${i}`}>Edit</button>
+                              <button type="button" className="text-sm text-primary hover:underline" onClick={() => removeOtherName(i)} data-testid={`button-delete-other-name-${i}`}>Delete</button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1508,6 +1597,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     setOtherNameFamily("");
                     setOtherNameGiven("");
                     setOtherNameReason("");
+                    setEditingOtherNameIndex(null);
                     setOtherNameDialogOpen(true);
                   }} data-testid="button-add-other-name">
                     Add
@@ -1800,9 +1890,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                             <td className="px-3 py-2">{doc.docNumber}</td>
                             <td className="px-3 py-2">{doc.country}</td>
                             <td className="px-3 py-2">
-                              <Button variant="outline" size="sm" onClick={() => removeTravelDoc(i)} data-testid={`button-remove-travel-doc-${i}`}>
-                                Remove
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <button type="button" className="text-sm text-primary hover:underline" onClick={() => editTravelDoc(i)} data-testid={`button-edit-travel-doc-${i}`}>Edit</button>
+                                <button type="button" className="text-sm text-primary hover:underline" onClick={() => removeTravelDoc(i)} data-testid={`button-delete-travel-doc-${i}`}>Delete</button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1820,6 +1911,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       setTravelDocPlaceOfIssue("");
                       setTravelDocCountry("");
                       setTravelDocIssueDate("");
+                      setEditingTravelDocIndex(null);
                       setTravelDocDialogOpen(true);
                     }} data-testid="button-add-travel-doc">
                       Add
@@ -1894,9 +1986,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                             <td className="p-2">{doc.idNumber}</td>
                             <td className="p-2">{doc.country}</td>
                             <td className="p-2">
-                              <Button variant="ghost" size="sm" onClick={() => removeIdentityDoc(index)} data-testid={`button-remove-identity-doc-${index}`}>
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <button type="button" className="text-sm text-primary hover:underline" onClick={() => editIdentityDoc(index)} data-testid={`button-edit-identity-doc-${index}`}>Edit</button>
+                                <button type="button" className="text-sm text-primary hover:underline" onClick={() => removeIdentityDoc(index)} data-testid={`button-delete-identity-doc-${index}`}>Delete</button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1910,6 +2003,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       setIdentityDocType("");
                       setIdentityDocNumber("");
                       setIdentityDocCountry("");
+                      setEditingIdentityDocIndex(null);
                       setIdentityDocDialogOpen(true);
                     }} data-testid="button-add-identity-doc">
                       Add
