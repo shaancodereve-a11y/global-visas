@@ -140,6 +140,16 @@ const FURTHER_STAY_LENGTHS = [
   "Up to 12 months",
 ];
 
+const RELATIONSHIP_STATUSES = [
+  "De Facto",
+  "Divorced",
+  "Engaged",
+  "Married",
+  "Never Married",
+  "Separated",
+  "Widowed",
+];
+
 interface StepProps {
   formData: FormData;
   updateFormData: (updates: FormData) => void;
@@ -867,6 +877,585 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step3Applicant({ formData, updateFormData }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+            <span className="text-sm font-semibold text-blue-700 dark:text-blue-400 shrink-0">Information:</span>
+            <p className="text-sm text-blue-700 dark:text-blue-400">
+              Entering names incorrectly may result in denial of permission to board an aircraft to Australia, or result in delays in border processing on arrival to Australia, even if the applicant has been granted a visa.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <h2 className="text-lg font-semibold text-primary" data-testid="text-step-title">Applicant</h2>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-semibold text-primary">Passport details</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Enter the applicant's passport details exactly as they appear in their passport.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">Enter the following details as they appear in the applicant's personal passport.</p>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Family name</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.familyName as string) || ""}
+                    onChange={(e) => updateFormData({ familyName: e.target.value })}
+                    data-testid="input-family-name"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Given names</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.givenNames as string) || ""}
+                    onChange={(e) => updateFormData({ givenNames: e.target.value })}
+                    data-testid="input-given-names"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Sex</Label>
+                <div className="col-span-2">
+                  <RadioGroup
+                    value={(formData.sex as string) || ""}
+                    onValueChange={(val) => updateFormData({ sex: val })}
+                    className="flex items-center gap-6"
+                    data-testid="radio-sex"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="female" id="sex-female" data-testid="radio-sex-female" />
+                      <Label htmlFor="sex-female" className="text-sm cursor-pointer">Female</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="male" id="sex-male" data-testid="radio-sex-male" />
+                      <Label htmlFor="sex-male" className="text-sm cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="other" id="sex-other" data-testid="radio-sex-other" />
+                      <Label htmlFor="sex-other" className="text-sm cursor-pointer">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Date of birth</Label>
+                <div className="col-span-2">
+                  <Input
+                    type="date"
+                    value={(formData.dateOfBirth as string) || ""}
+                    onChange={(e) => updateFormData({ dateOfBirth: e.target.value })}
+                    data-testid="input-date-of-birth"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Passport number</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.passportNumber as string) || ""}
+                    onChange={(e) => updateFormData({ passportNumber: e.target.value })}
+                    data-testid="input-passport-number"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Country of passport</Label>
+                <div className="col-span-2">
+                  <Select
+                    value={(formData.countryOfPassport as string) || ""}
+                    onValueChange={(val) => updateFormData({ countryOfPassport: val })}
+                  >
+                    <SelectTrigger data-testid="select-country-of-passport">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Nationality of passport holder</Label>
+                <div className="col-span-2">
+                  <Select
+                    value={(formData.nationalityOfHolder as string) || ""}
+                    onValueChange={(val) => updateFormData({ nationalityOfHolder: val })}
+                  >
+                    <SelectTrigger data-testid="select-nationality-of-holder">
+                      <SelectValue placeholder="Select nationality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Date of issue</Label>
+                <div className="col-span-2">
+                  <Input
+                    type="date"
+                    value={(formData.dateOfIssue as string) || ""}
+                    onChange={(e) => updateFormData({ dateOfIssue: e.target.value })}
+                    data-testid="input-date-of-issue"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Date of expiry</Label>
+                <div className="col-span-2">
+                  <Input
+                    type="date"
+                    value={(formData.dateOfExpiry as string) || ""}
+                    onChange={(e) => updateFormData({ dateOfExpiry: e.target.value })}
+                    data-testid="input-date-of-expiry"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Place of issue / issuing authority</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.placeOfIssue as string) || ""}
+                    onChange={(e) => updateFormData({ placeOfIssue: e.target.value })}
+                    data-testid="input-place-of-issue"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-3">It is strongly recommended that the passport be valid for at least six months.</p>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">National identity card</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Does this applicant have a national identity card?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>A national identity card is a government-issued document used to verify a person's identity.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasNationalIdCard as string) || ""}
+              onValueChange={(val) => updateFormData({ hasNationalIdCard: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-national-id-card"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="national-id-yes" data-testid="radio-national-id-yes" />
+                <Label htmlFor="national-id-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="national-id-no" data-testid="radio-national-id-no" />
+                <Label htmlFor="national-id-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-2">Pacific-Australia Card</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              The Pacific-Australia Card is issued through an invitation process to Pacific leaders. If the applicant does not hold a Pacific-Australia Card, select 'No' for this question.
+            </p>
+            <p className="text-sm mb-3">Is the applicant a Pacific-Australia Card holder?</p>
+            <RadioGroup
+              value={(formData.isPacificAustraliaCardHolder as string) || ""}
+              onValueChange={(val) => updateFormData({ isPacificAustraliaCardHolder: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-pacific-australia-card"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="pacific-card-yes" data-testid="radio-pacific-card-yes" />
+                <Label htmlFor="pacific-card-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="pacific-card-no" data-testid="radio-pacific-card-no" />
+                <Label htmlFor="pacific-card-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-sm font-semibold text-primary">Place of birth</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Enter the applicant's place of birth as shown on their birth certificate or passport.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Town / City</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.birthTownCity as string) || ""}
+                    onChange={(e) => updateFormData({ birthTownCity: e.target.value })}
+                    data-testid="input-birth-town-city"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">State / Province</Label>
+                <div className="col-span-2">
+                  <Input
+                    value={(formData.birthStateProvince as string) || ""}
+                    onChange={(e) => updateFormData({ birthStateProvince: e.target.value })}
+                    data-testid="input-birth-state-province"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-2">
+                <Label className="text-sm">Country of birth</Label>
+                <div className="col-span-2">
+                  <Select
+                    value={(formData.birthCountry as string) || ""}
+                    onValueChange={(val) => updateFormData({ birthCountry: val })}
+                  >
+                    <SelectTrigger data-testid="select-birth-country">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Relationship status</h3>
+            <div className="grid grid-cols-3 items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Relationship status</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Select the applicant's current relationship status.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <div className="col-span-2">
+                <Select
+                  value={(formData.relationshipStatus as string) || ""}
+                  onValueChange={(val) => updateFormData({ relationshipStatus: val })}
+                >
+                  <SelectTrigger data-testid="select-relationship-status">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Other names / spellings</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Is this applicant currently, or have they ever been known by any other names?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Include maiden names, aliases, or any other names the applicant has been known by.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasOtherNames as string) || ""}
+              onValueChange={(val) => updateFormData({ hasOtherNames: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-other-names"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="other-names-yes" data-testid="radio-other-names-yes" />
+                <Label htmlFor="other-names-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="other-names-no" data-testid="radio-other-names-no" />
+                <Label htmlFor="other-names-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Citizenship</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <p className="text-sm">Is this applicant a citizen of the selected country of passport?</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Indicate whether the applicant holds citizenship in the country that issued their passport.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <RadioGroup
+                  value={(formData.citizenOfPassportCountry as string) || ""}
+                  onValueChange={(val) => updateFormData({ citizenOfPassportCountry: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-citizen-passport-country"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="citizen-passport-yes" data-testid="radio-citizen-passport-yes" />
+                    <Label htmlFor="citizen-passport-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="citizen-passport-no" data-testid="radio-citizen-passport-no" />
+                    <Label htmlFor="citizen-passport-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <p className="text-sm">Is this applicant a citizen of any other country?</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Indicate whether the applicant holds citizenship in any country other than their passport country.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <RadioGroup
+                  value={(formData.citizenOfOtherCountry as string) || ""}
+                  onValueChange={(val) => updateFormData({ citizenOfOtherCountry: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-citizen-other-country"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="citizen-other-yes" data-testid="radio-citizen-other-yes" />
+                    <Label htmlFor="citizen-other-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="citizen-other-no" data-testid="radio-citizen-other-no" />
+                    <Label htmlFor="citizen-other-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Previous travel to Australia</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm mb-3">Has this applicant previously travelled to Australia?</p>
+                <RadioGroup
+                  value={(formData.previouslyTravelledToAustralia as string) || ""}
+                  onValueChange={(val) => updateFormData({ previouslyTravelledToAustralia: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-previously-travelled"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="prev-travel-yes" data-testid="radio-prev-travel-yes" />
+                    <Label htmlFor="prev-travel-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="prev-travel-no" data-testid="radio-prev-travel-no" />
+                    <Label htmlFor="prev-travel-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div>
+                <p className="text-sm mb-3">Has this applicant previously applied for a visa to Australia?</p>
+                <RadioGroup
+                  value={(formData.previouslyAppliedForVisa as string) || ""}
+                  onValueChange={(val) => updateFormData({ previouslyAppliedForVisa: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-previously-applied"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="prev-applied-yes" data-testid="radio-prev-applied-yes" />
+                    <Label htmlFor="prev-applied-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="prev-applied-no" data-testid="radio-prev-applied-no" />
+                    <Label htmlFor="prev-applied-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Grant number</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Does this applicant have an Australian visa grant number?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>A visa grant number is issued when a visa is granted. It can be found on the visa grant notification letter.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasGrantNumber as string) || ""}
+              onValueChange={(val) => updateFormData({ hasGrantNumber: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-grant-number"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="grant-number-yes" data-testid="radio-grant-number-yes" />
+                <Label htmlFor="grant-number-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="grant-number-no" data-testid="radio-grant-number-no" />
+                <Label htmlFor="grant-number-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Other passports or documents for travel</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Does this applicant have any other passports or documents for travel?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Include any other valid passports or travel documents held by the applicant.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasOtherPassports as string) || ""}
+              onValueChange={(val) => updateFormData({ hasOtherPassports: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-other-passports"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="other-passports-yes" data-testid="radio-other-passports-yes" />
+                <Label htmlFor="other-passports-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="other-passports-no" data-testid="radio-other-passports-no" />
+                <Label htmlFor="other-passports-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Other identity documents</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Does this applicant have other identity documents?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Include any other government-issued identity documents such as driver's licence or national ID.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasOtherIdentityDocs as string) || ""}
+              onValueChange={(val) => updateFormData({ hasOtherIdentityDocs: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-other-identity-docs"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="other-identity-yes" data-testid="radio-other-identity-yes" />
+                <Label htmlFor="other-identity-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="other-identity-no" data-testid="radio-other-identity-no" />
+                <Label htmlFor="other-identity-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-primary mb-3">Health examination</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm">Has this applicant undertaken a health examination for an Australian visa in the last 12 months?</p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>If the applicant has completed a health examination for a previous Australian visa application within the last 12 months, select Yes.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <RadioGroup
+              value={(formData.hasHealthExamination as string) || ""}
+              onValueChange={(val) => updateFormData({ hasHealthExamination: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-health-examination"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="health-exam-yes" data-testid="radio-health-exam-yes" />
+                <Label htmlFor="health-exam-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="health-exam-no" data-testid="radio-health-exam-no" />
+                <Label htmlFor="health-exam-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -993,6 +1582,8 @@ export default function ApplicationPage() {
         return <Step1Terms formData={formData} updateFormData={updateFormData} />;
       case 2:
         return <Step2ApplicationContext formData={formData} updateFormData={updateFormData} />;
+      case 3:
+        return <Step3Applicant formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
