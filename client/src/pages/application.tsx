@@ -983,6 +983,47 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
     updateFormData({ otherTravelDocs: updated });
   };
 
+  const IDENTITY_DOC_TYPES = [
+    "Birth certificate",
+    "Driver's licence",
+    "National ID card",
+    "Social security card",
+    "Tax file number",
+    "Other",
+  ];
+
+  const [identityDocDialogOpen, setIdentityDocDialogOpen] = useState(false);
+  const [identityDocFamilyName, setIdentityDocFamilyName] = useState("");
+  const [identityDocGivenNames, setIdentityDocGivenNames] = useState("");
+  const [identityDocType, setIdentityDocType] = useState("");
+  const [identityDocNumber, setIdentityDocNumber] = useState("");
+  const [identityDocCountry, setIdentityDocCountry] = useState("");
+  const otherIdentityDocs = (formData.otherIdentityDocs as Array<{ familyName: string; givenNames: string; docType: string; idNumber: string; country: string }>) || [];
+
+  const addIdentityDoc = () => {
+    if (identityDocFamilyName || identityDocGivenNames) {
+      const updated = [...otherIdentityDocs, {
+        familyName: identityDocFamilyName,
+        givenNames: identityDocGivenNames,
+        docType: identityDocType,
+        idNumber: identityDocNumber,
+        country: identityDocCountry,
+      }];
+      updateFormData({ otherIdentityDocs: updated });
+      setIdentityDocFamilyName("");
+      setIdentityDocGivenNames("");
+      setIdentityDocType("");
+      setIdentityDocNumber("");
+      setIdentityDocCountry("");
+      setIdentityDocDialogOpen(false);
+    }
+  };
+
+  const removeIdentityDoc = (index: number) => {
+    const updated = otherIdentityDocs.filter((_, i) => i !== index);
+    updateFormData({ otherIdentityDocs: updated });
+  };
+
   const addCitizenship = () => {
     if (citizenshipCountrySelect && !otherCitizenships.includes(citizenshipCountrySelect)) {
       updateFormData({ otherCitizenships: [...otherCitizenships, citizenshipCountrySelect] });
@@ -1817,7 +1858,156 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-identity-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasOtherIdentityDocs === "yes" && (
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Add details</p>
+                <div className="border rounded-md overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left p-2 font-medium">Family name</th>
+                          <th className="text-left p-2 font-medium">Given names</th>
+                          <th className="text-left p-2 font-medium">Type of document</th>
+                          <th className="text-left p-2 font-medium">Identification number</th>
+                          <th className="text-left p-2 font-medium">Country of issue</th>
+                          <th className="text-left p-2 font-medium flex items-center gap-1">
+                            Actions
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Remove identity documents from the list</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {otherIdentityDocs.map((doc, index) => (
+                          <tr key={index} className="border-t" data-testid={`row-identity-doc-${index}`}>
+                            <td className="p-2">{doc.familyName}</td>
+                            <td className="p-2">{doc.givenNames}</td>
+                            <td className="p-2">{doc.docType}</td>
+                            <td className="p-2">{doc.idNumber}</td>
+                            <td className="p-2">{doc.country}</td>
+                            <td className="p-2">
+                              <Button variant="ghost" size="sm" onClick={() => removeIdentityDoc(index)} data-testid={`button-remove-identity-doc-${index}`}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 border-t">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setIdentityDocFamilyName("");
+                      setIdentityDocGivenNames("");
+                      setIdentityDocType("");
+                      setIdentityDocNumber("");
+                      setIdentityDocCountry("");
+                      setIdentityDocDialogOpen(true);
+                    }} data-testid="button-add-identity-doc">
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
+          <Dialog open={identityDocDialogOpen} onOpenChange={setIdentityDocDialogOpen}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-primary">Other identity documents</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">Enter details exactly as shown on the identity document.</p>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Family name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={identityDocFamilyName}
+                      onChange={(e) => setIdentityDocFamilyName(e.target.value)}
+                      data-testid="input-identity-doc-family-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Enter the family name exactly as shown on the identity document</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Given names</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={identityDocGivenNames}
+                      onChange={(e) => setIdentityDocGivenNames(e.target.value)}
+                      data-testid="input-identity-doc-given-names"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Enter the given names exactly as shown on the identity document</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Type of document</Label>
+                  <Select value={identityDocType} onValueChange={setIdentityDocType}>
+                    <SelectTrigger data-testid="select-identity-doc-type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {IDENTITY_DOC_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Identification number</Label>
+                  <Input
+                    value={identityDocNumber}
+                    onChange={(e) => setIdentityDocNumber(e.target.value)}
+                    data-testid="input-identity-doc-number"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <Select value={identityDocCountry} onValueChange={setIdentityDocCountry}>
+                    <SelectTrigger data-testid="select-identity-doc-country">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter className="flex justify-between gap-2 sm:justify-between">
+                <Button variant="outline" onClick={() => setIdentityDocDialogOpen(false)} data-testid="button-cancel-identity-doc">
+                  Cancel
+                </Button>
+                <Button onClick={addIdentityDoc} data-testid="button-confirm-identity-doc">
+                  Confirm
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <div className="border-t pt-4">
             <h3 className="text-sm font-semibold text-primary mb-3">Health examination</h3>
