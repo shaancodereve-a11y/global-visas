@@ -3715,6 +3715,168 @@ function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
               <TooltipContent className="max-w-xs"><p>An authorised recipient is a person authorised by the applicant to receive written correspondence from the department on their behalf.</p></TooltipContent>
             </Tooltip>
           </div>
+
+          {authorisedRecipient === "registered_migration_agent" && (
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <p className="text-sm">Has the applicant appointed this person to provide them immigration assistance?</p>
+                <RadioGroup
+                  value={(formData.agentAppointedAssistance as string) || ""}
+                  onValueChange={(val) => updateFormData({ agentAppointedAssistance: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-agent-appointed"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="agent-appointed-yes" data-testid="radio-agent-appointed-yes" />
+                    <Label htmlFor="agent-appointed-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="agent-appointed-no" data-testid="radio-agent-appointed-no" />
+                    <Label htmlFor="agent-appointed-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs"><p>Indicate if this migration agent has been appointed to provide immigration assistance</p></TooltipContent>
+                </Tooltip>
+              </div>
+
+              <h3 className="text-base font-bold text-primary">Registered migration agent contact details</h3>
+              <h4 className="text-sm font-bold text-primary">Registered migration agent</h4>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">MARN</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.agentMarn as string) || ""} onChange={(e) => updateFormData({ agentMarn: e.target.value })} className="w-48" data-testid="input-agent-marn" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Migration Agent Registration Number</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Family name</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.agentFamilyName as string) || ""} onChange={(e) => updateFormData({ agentFamilyName: e.target.value })} data-testid="input-agent-family-name" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Family name of the migration agent</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Given names</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.agentGivenNames as string) || ""} onChange={(e) => updateFormData({ agentGivenNames: e.target.value })} data-testid="input-agent-given-names" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Given names of the migration agent</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Organisation</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.agentOrganisation as string) || ""} onChange={(e) => updateFormData({ agentOrganisation: e.target.value })} data-testid="input-agent-organisation" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Organisation the migration agent belongs to</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+
+              <h4 className="text-sm font-bold text-primary mt-4">Postal address</h4>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Country</Label>
+                  <div className="col-span-2">
+                    <Select value={(formData.agentPostalCountry as string) || ""} onValueChange={(val) => updateFormData({ agentPostalCountry: val })}>
+                      <SelectTrigger data-testid="select-agent-postal-country">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Address</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.agentPostalAddress1 as string) || ""} onChange={(e) => updateFormData({ agentPostalAddress1: e.target.value })} data-testid="input-agent-postal-address1" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Postal address line 1</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm"></Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentPostalAddress2 as string) || ""} onChange={(e) => updateFormData({ agentPostalAddress2: e.target.value })} data-testid="input-agent-postal-address2" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Suburb / Town</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentPostalSuburb as string) || ""} onChange={(e) => updateFormData({ agentPostalSuburb: e.target.value })} data-testid="input-agent-postal-suburb" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">State or Province</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentPostalState as string) || ""} onChange={(e) => updateFormData({ agentPostalState: e.target.value })} data-testid="input-agent-postal-state" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Postal code</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentPostalCode as string) || ""} onChange={(e) => updateFormData({ agentPostalCode: e.target.value })} className="w-48" data-testid="input-agent-postal-code" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 mt-4">
+                <h4 className="text-sm font-bold text-primary">Contact telephone numbers</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Enter numbers only with no spaces</p></TooltipContent>
+                </Tooltip>
+              </div>
+              <p className="text-sm mb-2">Enter numbers only with no spaces.</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Business phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentBusinessPhone as string) || ""} onChange={(e) => updateFormData({ agentBusinessPhone: e.target.value })} data-testid="input-agent-business-phone" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Mobile / Cell phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.agentMobilePhone as string) || ""} onChange={(e) => updateFormData({ agentMobilePhone: e.target.value })} data-testid="input-agent-mobile-phone" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -3735,7 +3897,13 @@ function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
           <div className="grid grid-cols-3 items-center gap-4 mb-4">
             <Label className="text-sm">Email address</Label>
             <div className="col-span-2 flex items-center gap-2">
-              <Input value={communicationEmail} readOnly className="bg-muted" data-testid="input-communication-email" />
+              <Input
+                value={authorisedRecipient === "registered_migration_agent" ? ((formData.agentEmail as string) || "") : communicationEmail}
+                onChange={authorisedRecipient === "registered_migration_agent" ? (e) => updateFormData({ agentEmail: e.target.value }) : undefined}
+                readOnly={authorisedRecipient !== "registered_migration_agent"}
+                className={authorisedRecipient !== "registered_migration_agent" ? "bg-muted" : ""}
+                data-testid="input-communication-email"
+              />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
