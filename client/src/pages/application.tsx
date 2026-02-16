@@ -1233,6 +1233,17 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="pacific-card-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.isPacificAustraliaCardHolder === "yes" && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium mb-1 block">Pacific-Australia Card serial number (printed on the front of your card)</Label>
+                <Input
+                  value={(formData.pacificAustraliaCardSerial as string) || ""}
+                  onChange={(e) => updateFormData({ pacificAustraliaCardSerial: e.target.value })}
+                  data-testid="input-pacific-card-serial"
+                />
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
