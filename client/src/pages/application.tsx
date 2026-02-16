@@ -1591,6 +1591,17 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="grant-number-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasGrantNumber === "yes" && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium mb-1 block">Australian visa grant number (if known)</Label>
+                <Input
+                  value={(formData.visaGrantNumber as string) || ""}
+                  onChange={(e) => updateFormData({ visaGrantNumber: e.target.value })}
+                  data-testid="input-visa-grant-number"
+                />
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
