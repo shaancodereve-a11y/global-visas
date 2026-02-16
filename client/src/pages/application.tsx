@@ -4511,16 +4511,39 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
   const [studyDateTo, setStudyDateTo] = useState("");
   const [editingStudyIndex, setEditingStudyIndex] = useState<number | null>(null);
 
+  const AUSTRALIAN_STATES = [
+    "Australian Capital Territory", "New South Wales", "Northern Territory",
+    "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia"
+  ];
+
+  const RESIDENCY_STATUS_OPTIONS = [
+    "Australian citizen", "Australian permanent resident",
+    "Australian temporary resident (student)", "Australian temporary resident (visitor)",
+    "Australian temporary resident (work visa)", "Other", "Unknown"
+  ];
+
   const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [contactRelationship, setContactRelationship] = useState("");
   const [contactFamilyName, setContactFamilyName] = useState("");
   const [contactGivenNames, setContactGivenNames] = useState("");
+  const [contactSex, setContactSex] = useState("");
   const [contactDob, setContactDob] = useState("");
-  const [contactRelationship, setContactRelationship] = useState("");
+  const [contactCountry, setContactCountry] = useState("Australia");
+  const [contactAddress1, setContactAddress1] = useState("");
+  const [contactAddress2, setContactAddress2] = useState("");
+  const [contactSuburb, setContactSuburb] = useState("");
+  const [contactState, setContactState] = useState("");
+  const [contactPostcode, setContactPostcode] = useState("");
+  const [contactHomePhone, setContactHomePhone] = useState("");
+  const [contactBusinessPhone, setContactBusinessPhone] = useState("");
+  const [contactMobilePhone, setContactMobilePhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactResidencyStatus, setContactResidencyStatus] = useState("");
   const [editingContactIndex, setEditingContactIndex] = useState<number | null>(null);
 
   const entries = (formData.entryDates as Array<{ reason: string; dateFrom: string; dateTo: string }>) || [];
   const studies = (formData.studyCourses as Array<{ courseName: string; institution: string; dateFrom: string; dateTo: string }>) || [];
-  const contacts = (formData.australiaContacts as Array<{ familyName: string; givenNames: string; dob: string; relationship: string }>) || [];
+  const contacts = (formData.australiaContacts as Array<{ relationship: string; familyName: string; givenNames: string; sex: string; dob: string; country: string; address1: string; address2: string; suburb: string; state: string; postcode: string; homePhone: string; businessPhone: string; mobilePhone: string; email: string; residencyStatus: string }>) || [];
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
@@ -4531,7 +4554,7 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
 
   const resetEntryForm = () => { setEntryReason(""); setEntryDateFrom(""); setEntryDateTo(""); setEditingEntryIndex(null); setEntryFormOpen(false); };
   const resetStudyForm = () => { setStudyCourseName(""); setStudyInstitution(""); setStudyDateFrom(""); setStudyDateTo(""); setEditingStudyIndex(null); setStudyFormOpen(false); };
-  const resetContactForm = () => { setContactFamilyName(""); setContactGivenNames(""); setContactDob(""); setContactRelationship(""); setEditingContactIndex(null); setContactFormOpen(false); };
+  const resetContactForm = () => { setContactRelationship(""); setContactFamilyName(""); setContactGivenNames(""); setContactSex(""); setContactDob(""); setContactCountry("Australia"); setContactAddress1(""); setContactAddress2(""); setContactSuburb(""); setContactState(""); setContactPostcode(""); setContactHomePhone(""); setContactBusinessPhone(""); setContactMobilePhone(""); setContactEmail(""); setContactResidencyStatus(""); setEditingContactIndex(null); setContactFormOpen(false); };
 
   const confirmEntry = () => {
     const entry = { reason: entryReason, dateFrom: entryDateFrom, dateTo: entryDateTo };
@@ -4552,12 +4575,12 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
   const removeStudy = (i: number) => { updateFormData({ studyCourses: studies.filter((_, idx) => idx !== i) }); };
 
   const confirmContact = () => {
-    const entry = { familyName: contactFamilyName, givenNames: contactGivenNames, dob: contactDob, relationship: contactRelationship };
+    const entry = { relationship: contactRelationship, familyName: contactFamilyName, givenNames: contactGivenNames, sex: contactSex, dob: contactDob, country: contactCountry, address1: contactAddress1, address2: contactAddress2, suburb: contactSuburb, state: contactState, postcode: contactPostcode, homePhone: contactHomePhone, businessPhone: contactBusinessPhone, mobilePhone: contactMobilePhone, email: contactEmail, residencyStatus: contactResidencyStatus };
     if (editingContactIndex !== null) { const updated = [...contacts]; updated[editingContactIndex] = entry; updateFormData({ australiaContacts: updated }); }
     else { updateFormData({ australiaContacts: [...contacts, entry] }); }
     resetContactForm();
   };
-  const editContact = (i: number) => { const c = contacts[i]; setContactFamilyName(c.familyName); setContactGivenNames(c.givenNames); setContactDob(c.dob); setContactRelationship(c.relationship); setEditingContactIndex(i); setContactFormOpen(true); };
+  const editContact = (i: number) => { const c = contacts[i]; setContactRelationship(c.relationship); setContactFamilyName(c.familyName); setContactGivenNames(c.givenNames); setContactSex(c.sex || ""); setContactDob(c.dob); setContactCountry(c.country || "Australia"); setContactAddress1(c.address1 || ""); setContactAddress2(c.address2 || ""); setContactSuburb(c.suburb || ""); setContactState(c.state || ""); setContactPostcode(c.postcode || ""); setContactHomePhone(c.homePhone || ""); setContactBusinessPhone(c.businessPhone || ""); setContactMobilePhone(c.mobilePhone || ""); setContactEmail(c.email || ""); setContactResidencyStatus(c.residencyStatus || ""); setEditingContactIndex(i); setContactFormOpen(true); };
   const removeContact = (i: number) => { updateFormData({ australiaContacts: contacts.filter((_, idx) => idx !== i) }); };
 
   if (entryFormOpen) {
@@ -4644,8 +4667,10 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
       <div className="space-y-4">
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-contact-form-title">Relative, friend or contact details</h2>
-            <div className="space-y-4">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-contact-form-title">Contact in Australia</h2>
+
+            <h3 className="text-base font-bold text-primary mb-3">Relationship to applicant</h3>
+            <div className="space-y-4 mb-6">
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label className="text-sm">Relationship to the applicant</Label>
                 <div className="col-span-2 flex items-center gap-2">
@@ -4667,6 +4692,10 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                   </Tooltip>
                 </div>
               </div>
+            </div>
+
+            <h3 className="text-base font-bold text-primary mb-3">Contact's details</h3>
+            <div className="space-y-4 mb-6">
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label className="text-sm">Family name</Label>
                 <div className="col-span-2 flex items-center gap-2">
@@ -4675,7 +4704,7 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     </TooltipTrigger>
-                    <TooltipContent><p>Family name of the relative, friend or contact</p></TooltipContent>
+                    <TooltipContent><p>Family name of the contact</p></TooltipContent>
                   </Tooltip>
                 </div>
               </div>
@@ -4687,8 +4716,27 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                     <TooltipTrigger asChild>
                       <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     </TooltipTrigger>
-                    <TooltipContent><p>Given names of the relative, friend or contact</p></TooltipContent>
+                    <TooltipContent><p>Given names of the contact</p></TooltipContent>
                   </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Sex</Label>
+                <div className="col-span-2">
+                  <RadioGroup value={contactSex} onValueChange={setContactSex} className="flex items-center gap-4" data-testid="radio-contact-sex">
+                    <div className="flex items-center gap-1">
+                      <RadioGroupItem value="Female" id="contact-sex-female" data-testid="radio-contact-sex-female" />
+                      <Label htmlFor="contact-sex-female" className="text-sm cursor-pointer">Female</Label>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <RadioGroupItem value="Male" id="contact-sex-male" data-testid="radio-contact-sex-male" />
+                      <Label htmlFor="contact-sex-male" className="text-sm cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <RadioGroupItem value="Other" id="contact-sex-other" data-testid="radio-contact-sex-other" />
+                      <Label htmlFor="contact-sex-other" className="text-sm cursor-pointer">Other</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
               <div className="grid grid-cols-3 items-center gap-4">
@@ -4698,7 +4746,165 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                 </div>
               </div>
             </div>
-            <div className="flex justify-between mt-6 pt-4 border-t">
+
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="text-base font-bold text-primary">Residential address</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent><p>The residential address of the contact in Australia</p></TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm mb-3">Note that a street address is required. A post office address cannot be accepted as a residential address.</p>
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Country</Label>
+                <div className="col-span-2">
+                  <Select value={contactCountry} onValueChange={(val) => { setContactCountry(val); setContactState(""); }}>
+                    <SelectTrigger data-testid="select-contact-country">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c.toUpperCase()}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Address</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={contactAddress1} onChange={(e) => setContactAddress1(e.target.value)} data-testid="input-contact-address1" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Street address of the contact</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm"></Label>
+                <div className="col-span-2">
+                  <Input value={contactAddress2} onChange={(e) => setContactAddress2(e.target.value)} data-testid="input-contact-address2" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Suburb / Town</Label>
+                <div className="col-span-2">
+                  <Input value={contactSuburb} onChange={(e) => setContactSuburb(e.target.value)} data-testid="input-contact-suburb" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">State / Territory</Label>
+                <div className="col-span-2">
+                  {contactCountry === "Australia" ? (
+                    <Select value={contactState} onValueChange={setContactState}>
+                      <SelectTrigger data-testid="select-contact-state">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AUSTRALIAN_STATES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={contactState} onChange={(e) => setContactState(e.target.value)} data-testid="input-contact-state" />
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Postcode</Label>
+                <div className="col-span-2">
+                  <Input value={contactPostcode} onChange={(e) => setContactPostcode(e.target.value)} className="w-24" data-testid="input-contact-postcode" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="text-base font-bold text-primary">Contact telephone numbers</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent><p>Contact telephone numbers for this person</p></TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-sm mb-3">Enter numbers only with no spaces.</p>
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Home phone</Label>
+                <div className="col-span-2">
+                  <Input value={contactHomePhone} onChange={(e) => setContactHomePhone(e.target.value)} data-testid="input-contact-home-phone" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Business phone</Label>
+                <div className="col-span-2">
+                  <Input value={contactBusinessPhone} onChange={(e) => setContactBusinessPhone(e.target.value)} data-testid="input-contact-business-phone" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Mobile / Cell phone</Label>
+                <div className="col-span-2">
+                  <Input value={contactMobilePhone} onChange={(e) => setContactMobilePhone(e.target.value)} data-testid="input-contact-mobile-phone" />
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-base font-bold text-primary mb-3">Electronic communication</h3>
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Email address</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} data-testid="input-contact-email" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Email address of the contact</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="text-base font-bold text-primary">Australian residency status</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent><p>The Australian residency status of the contact</p></TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Australian residency status</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Select value={contactResidencyStatus} onValueChange={setContactResidencyStatus}>
+                    <SelectTrigger data-testid="select-contact-residency-status">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RESIDENCY_STATUS_OPTIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Select the Australian residency status of the contact</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-4 border-t">
               <Button variant="outline" size="sm" type="button" onClick={resetContactForm} data-testid="button-contact-cancel">Cancel</Button>
               <Button variant="outline" size="sm" type="button" onClick={confirmContact} data-testid="button-contact-confirm">Confirm</Button>
             </div>
