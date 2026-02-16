@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Printer, ArrowLeft, ArrowRight, Save, Loader2, Plus, X, HelpCircle } from "lucide-react";
+import { Printer, ArrowLeft, ArrowRight, Save, Loader2, Plus, X, HelpCircle, AlertCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import logoPath from "@assets/GLOBAL-VISA-logo_1771013259487.webp";
 
@@ -153,6 +153,7 @@ const RELATIONSHIP_STATUSES = [
 interface StepProps {
   formData: FormData;
   updateFormData: (updates: FormData) => void;
+  validationErrors?: Record<string, string>;
 }
 
 function Step1Terms({ formData, updateFormData }: StepProps) {
@@ -883,7 +884,17 @@ const NAME_CHANGE_REASONS = [
   "Other",
 ];
 
-function Step3Applicant({ formData, updateFormData }: StepProps) {
+function ValidationError({ error }: { error?: string }) {
+  if (!error) return null;
+  return (
+    <div className="mt-1 border border-destructive rounded-md bg-destructive/10 px-3 py-2 flex items-start gap-2" data-testid="validation-error">
+      <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+      <p className="text-sm text-destructive">{error}</p>
+    </div>
+  );
+}
+
+function Step3Applicant({ formData, updateFormData, validationErrors = {} }: StepProps) {
   const [otherNameDialogOpen, setOtherNameDialogOpen] = useState(false);
   const [otherNameFamily, setOtherNameFamily] = useState("");
   const [otherNameGiven, setOtherNameGiven] = useState("");
@@ -1179,6 +1190,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ familyName: e.target.value })}
                     data-testid="input-family-name"
                   />
+                  <ValidationError error={validationErrors.familyName} />
                 </div>
               </div>
 
@@ -1215,6 +1227,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       <Label htmlFor="sex-other" className="text-sm cursor-pointer">Other</Label>
                     </div>
                   </RadioGroup>
+                  <ValidationError error={validationErrors.sex} />
                 </div>
               </div>
 
@@ -1227,6 +1240,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ dateOfBirth: e.target.value })}
                     data-testid="input-date-of-birth"
                   />
+                  <ValidationError error={validationErrors.dateOfBirth} />
                 </div>
               </div>
 
@@ -1238,6 +1252,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ passportNumber: e.target.value })}
                     data-testid="input-passport-number"
                   />
+                  <ValidationError error={validationErrors.passportNumber} />
                 </div>
               </div>
 
@@ -1257,6 +1272,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <ValidationError error={validationErrors.countryOfPassport} />
                 </div>
               </div>
 
@@ -1276,6 +1292,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <ValidationError error={validationErrors.nationalityOfHolder} />
                 </div>
               </div>
 
@@ -1288,6 +1305,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ dateOfIssue: e.target.value })}
                     data-testid="input-date-of-issue"
                   />
+                  <ValidationError error={validationErrors.dateOfIssue} />
                 </div>
               </div>
 
@@ -1300,6 +1318,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ dateOfExpiry: e.target.value })}
                     data-testid="input-date-of-expiry"
                   />
+                  <ValidationError error={validationErrors.dateOfExpiry} />
                 </div>
               </div>
 
@@ -1311,6 +1330,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => updateFormData({ placeOfIssue: e.target.value })}
                     data-testid="input-place-of-issue"
                   />
+                  <ValidationError error={validationErrors.placeOfIssue} />
                 </div>
               </div>
             </div>
@@ -1346,8 +1366,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="national-id-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasNationalIdCard} />
 
             {formData.hasNationalIdCard === "yes" && (
+              <>
               <div className="mt-4 border rounded-md">
                 <div className="px-3 py-2 border-b">
                   <span className="text-sm font-semibold text-primary">Add details</span>
@@ -1396,6 +1418,8 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                   </Button>
                 </div>
               </div>
+              <ValidationError error={validationErrors.nationalIdCards} />
+              </>
             )}
           </div>
 
@@ -1420,6 +1444,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="pacific-card-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.isPacificAustraliaCardHolder} />
 
             {formData.isPacificAustraliaCardHolder === "yes" && (
               <div className="mt-4">
@@ -1429,6 +1454,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                   onChange={(e) => updateFormData({ pacificAustraliaCardSerial: e.target.value })}
                   data-testid="input-pacific-card-serial"
                 />
+                <ValidationError error={validationErrors.pacificAustraliaCardSerial} />
               </div>
             )}
           </div>
@@ -1482,6 +1508,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <ValidationError error={validationErrors.birthCountry} />
                 </div>
               </div>
             </div>
@@ -1515,6 +1542,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     ))}
                   </SelectContent>
                 </Select>
+                <ValidationError error={validationErrors.relationshipStatus} />
               </div>
             </div>
           </div>
@@ -1547,6 +1575,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-names-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasOtherNames} />
 
             {formData.hasOtherNames === "yes" && (
               <div className="mt-4 border rounded-md">
@@ -1637,6 +1666,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="citizen-passport-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+                <ValidationError error={validationErrors.citizenOfPassportCountry} />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -1665,6 +1695,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="citizen-other-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+                <ValidationError error={validationErrors.citizenOfOtherCountry} />
 
                 {formData.citizenOfOtherCountry === "yes" && (
                   <div className="mt-4 space-y-3">
@@ -1730,6 +1761,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="prev-travel-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+                <ValidationError error={validationErrors.previouslyTravelledToAustralia} />
               </div>
               <div>
                 <p className="text-sm mb-3">Has this applicant previously applied for a visa to Australia?</p>
@@ -1748,6 +1780,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="prev-applied-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+                <ValidationError error={validationErrors.previouslyAppliedForVisa} />
               </div>
             </div>
           </div>
@@ -1780,6 +1813,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="grant-number-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasGrantNumber} />
 
             {formData.hasGrantNumber === "yes" && (
               <div className="mt-4">
@@ -1789,6 +1823,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                   onChange={(e) => updateFormData({ visaGrantNumber: e.target.value })}
                   data-testid="input-visa-grant-number"
                 />
+                <ValidationError error={validationErrors.visaGrantNumber} />
               </div>
             )}
           </div>
@@ -1821,6 +1856,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-passports-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasOtherPassports} />
 
             {formData.hasOtherPassports === "yes" && (
               <div className="mt-4 space-y-4">
@@ -1950,6 +1986,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-identity-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasOtherIdentityDocs} />
 
             {formData.hasOtherIdentityDocs === "yes" && (
               <div className="mt-3">
@@ -2131,6 +2168,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="health-exam-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+            <ValidationError error={validationErrors.hasHealthExamination} />
 
             {formData.hasHealthExamination === "yes" && (
               <div className="mt-4 space-y-4">
@@ -2142,6 +2180,7 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     className="min-h-[100px]"
                     data-testid="textarea-health-exam-details"
                   />
+                  <ValidationError error={validationErrors.healthExaminationDetails} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -2951,6 +2990,7 @@ export default function ApplicationPage() {
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({});
   const [currentStep, setCurrentStep] = useState(1);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { data: application, isLoading } = useQuery<Application>({
     queryKey: ["/api/applications", params.id],
@@ -2977,7 +3017,14 @@ export default function ApplicationPage() {
 
   const updateFormData = useCallback((updates: FormData) => {
     setFormData((prev) => ({ ...prev, ...updates }));
-  }, []);
+    if (Object.keys(validationErrors).length > 0) {
+      const clearedErrors = { ...validationErrors };
+      Object.keys(updates).forEach((key) => {
+        delete clearedErrors[key];
+      });
+      setValidationErrors(clearedErrors);
+    }
+  }, [validationErrors]);
 
   const handleSave = useCallback(() => {
     saveMutation.mutate({ formData, currentStep });
@@ -2997,6 +3044,92 @@ export default function ApplicationPage() {
       );
     }
   }, [currentStep, formData, saveMutation]);
+
+  const validateStep3 = useCallback((): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    if (!formData.familyName || !(formData.familyName as string).trim()) {
+      errors.familyName = "Family name is a required field.";
+    }
+    if (!formData.sex) {
+      errors.sex = "Sex is a required field.";
+    }
+    if (!formData.dateOfBirth) {
+      errors.dateOfBirth = "Date of birth is a required field.";
+    }
+    if (!formData.passportNumber || !(formData.passportNumber as string).trim()) {
+      errors.passportNumber = "Passport number is a required field.";
+    }
+    if (!formData.countryOfPassport) {
+      errors.countryOfPassport = "Country of passport is a required field.";
+    }
+    if (!formData.nationalityOfHolder) {
+      errors.nationalityOfHolder = "Nationality of passport holder is a required field.";
+    }
+    if (!formData.dateOfIssue) {
+      errors.dateOfIssue = "Date of issue is a required field.";
+    }
+    if (!formData.dateOfExpiry) {
+      errors.dateOfExpiry = "Date of expiry is a required field.";
+    }
+    if (!formData.placeOfIssue || !(formData.placeOfIssue as string).trim()) {
+      errors.placeOfIssue = "Place of issue / issuing authority is a required field.";
+    }
+    if (!formData.hasNationalIdCard) {
+      errors.hasNationalIdCard = "National identity card is a required field.";
+    }
+    if (formData.hasNationalIdCard === "yes") {
+      const cards = (formData.nationalIdCards as Array<Record<string, string>>) || [];
+      if (cards.length === 0) {
+        errors.nationalIdCards = "Please add at least one national identity card.";
+      }
+    }
+    if (!formData.isPacificAustraliaCardHolder) {
+      errors.isPacificAustraliaCardHolder = "Pacific Australia Travel Card holder is a required field.";
+    }
+    if (formData.isPacificAustraliaCardHolder === "yes" && (!formData.pacificAustraliaCardSerial || !(formData.pacificAustraliaCardSerial as string).trim())) {
+      errors.pacificAustraliaCardSerial = "Card serial number is a required field.";
+    }
+    if (!formData.birthCountry) {
+      errors.birthCountry = "Country of birth is a required field.";
+    }
+    if (!formData.relationshipStatus) {
+      errors.relationshipStatus = "Relationship status is a required field.";
+    }
+    if (!formData.hasOtherNames) {
+      errors.hasOtherNames = "Other names / spellings is a required field.";
+    }
+    if (!formData.citizenOfPassportCountry) {
+      errors.citizenOfPassportCountry = "Citizen of passport country is a required field.";
+    }
+    if (!formData.citizenOfOtherCountry) {
+      errors.citizenOfOtherCountry = "Citizen of any other country is a required field.";
+    }
+    if (!formData.previouslyTravelledToAustralia) {
+      errors.previouslyTravelledToAustralia = "Previously travelled to Australia is a required field.";
+    }
+    if (!formData.previouslyAppliedForVisa) {
+      errors.previouslyAppliedForVisa = "Previously applied for a visa is a required field.";
+    }
+    if (!formData.hasGrantNumber) {
+      errors.hasGrantNumber = "Grant number is a required field.";
+    }
+    if (formData.hasGrantNumber === "yes" && (!formData.visaGrantNumber || !(formData.visaGrantNumber as string).trim())) {
+      errors.visaGrantNumber = "Visa grant number is a required field.";
+    }
+    if (!formData.hasOtherPassports) {
+      errors.hasOtherPassports = "Other passports / travel documents is a required field.";
+    }
+    if (!formData.hasOtherIdentityDocs) {
+      errors.hasOtherIdentityDocs = "Other identity documents is a required field.";
+    }
+    if (!formData.hasHealthExamination) {
+      errors.hasHealthExamination = "Health examination is a required field.";
+    }
+    if (formData.hasHealthExamination === "yes" && (!formData.healthExaminationDetails || !(formData.healthExaminationDetails as string).trim())) {
+      errors.healthExaminationDetails = "Health examination details are required.";
+    }
+    return errors;
+  }, [formData]);
 
   const handleNext = useCallback(() => {
     if (currentStep === 1 && !formData.termsAccepted) {
@@ -3019,6 +3152,21 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 3) {
+      const errors = validateStep3();
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        toast({
+          title: "Required fields missing",
+          description: "Please complete all required fields before proceeding.",
+          variant: "destructive",
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      setValidationErrors({});
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -3029,7 +3177,7 @@ export default function ApplicationPage() {
         },
       }
     );
-  }, [currentStep, formData, saveMutation, toast]);
+  }, [currentStep, formData, saveMutation, toast, validateStep3]);
 
   const handlePrint = () => {
     window.print();
@@ -3071,7 +3219,7 @@ export default function ApplicationPage() {
       case 2:
         return <Step2ApplicationContext formData={formData} updateFormData={updateFormData} />;
       case 3:
-        return <Step3Applicant formData={formData} updateFormData={updateFormData} />;
+        return <Step3Applicant formData={formData} updateFormData={updateFormData} validationErrors={validationErrors} />;
       default:
         return (
           <Card>
