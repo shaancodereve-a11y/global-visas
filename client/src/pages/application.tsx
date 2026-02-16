@@ -889,6 +889,20 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [otherNameGiven, setOtherNameGiven] = useState("");
   const [otherNameReason, setOtherNameReason] = useState("");
   const otherNames = (formData.otherNames as Array<{ familyName: string; givenNames: string; reason: string }>) || [];
+  const [citizenshipCountrySelect, setCitizenshipCountrySelect] = useState("");
+  const otherCitizenships = (formData.otherCitizenships as string[]) || [];
+
+  const addCitizenship = () => {
+    if (citizenshipCountrySelect && !otherCitizenships.includes(citizenshipCountrySelect)) {
+      updateFormData({ otherCitizenships: [...otherCitizenships, citizenshipCountrySelect] });
+      setCitizenshipCountrySelect("");
+    }
+  };
+
+  const removeCitizenship = (index: number) => {
+    const updated = otherCitizenships.filter((_, i) => i !== index);
+    updateFormData({ otherCitizenships: updated });
+  };
 
   const addOtherName = () => {
     if (otherNameFamily || otherNameGiven) {
@@ -1364,6 +1378,47 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     <Label htmlFor="citizen-other-no" className="text-sm cursor-pointer">No</Label>
                   </div>
                 </RadioGroup>
+
+                {formData.citizenOfOtherCountry === "yes" && (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm min-w-[100px]">List countries</Label>
+                      <Select value={citizenshipCountrySelect} onValueChange={setCitizenshipCountrySelect}>
+                        <SelectTrigger className="flex-1" data-testid="select-other-citizenship-country">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="icon" variant="outline" onClick={addCitizenship} data-testid="button-add-citizenship">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Select and add all countries where the applicant holds citizenship</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    {otherCitizenships.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {otherCitizenships.map((country, i) => (
+                          <span key={i} className="inline-flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm" data-testid={`tag-citizenship-${i}`}>
+                            {country}
+                            <button onClick={() => removeCitizenship(i)} className="text-muted-foreground hover-elevate rounded-sm" data-testid={`button-remove-citizenship-${i}`}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
