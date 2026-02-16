@@ -4039,6 +4039,118 @@ function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
               </div>
             </div>
           )}
+
+          {authorisedRecipient === "another_person" && (
+            <div className="mt-4 space-y-4">
+              <h3 className="text-base font-bold text-primary">Authorised recipient contact details</h3>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Family name</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.otherPersonFamilyName as string) || ""} onChange={(e) => updateFormData({ otherPersonFamilyName: e.target.value })} data-testid="input-other-family-name" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Family name of the authorised recipient</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Given names</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.otherPersonGivenNames as string) || ""} onChange={(e) => updateFormData({ otherPersonGivenNames: e.target.value })} data-testid="input-other-given-names" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Given names of the authorised recipient</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+
+              <h4 className="text-sm font-bold text-primary mt-4">Postal address</h4>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Country</Label>
+                  <div className="col-span-2">
+                    <Select value={(formData.otherPersonPostalCountry as string) || ""} onValueChange={(val) => updateFormData({ otherPersonPostalCountry: val })}>
+                      <SelectTrigger data-testid="select-other-postal-country">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Address</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Input value={(formData.otherPersonPostalAddress1 as string) || ""} onChange={(e) => updateFormData({ otherPersonPostalAddress1: e.target.value })} data-testid="input-other-postal-address1" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent><p>Postal address line 1</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm"></Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonPostalAddress2 as string) || ""} onChange={(e) => updateFormData({ otherPersonPostalAddress2: e.target.value })} data-testid="input-other-postal-address2" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Suburb / Town</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonPostalSuburb as string) || ""} onChange={(e) => updateFormData({ otherPersonPostalSuburb: e.target.value })} data-testid="input-other-postal-suburb" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">State or Province</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonPostalState as string) || ""} onChange={(e) => updateFormData({ otherPersonPostalState: e.target.value })} data-testid="input-other-postal-state" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Postal code</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonPostalCode as string) || ""} onChange={(e) => updateFormData({ otherPersonPostalCode: e.target.value })} className="w-48" data-testid="input-other-postal-code" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 mt-4">
+                <h4 className="text-sm font-bold text-primary">Contact telephone numbers</h4>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Enter numbers only with no spaces</p></TooltipContent>
+                </Tooltip>
+              </div>
+              <p className="text-sm mb-2">Enter numbers only with no spaces.</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Business phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonBusinessPhone as string) || ""} onChange={(e) => updateFormData({ otherPersonBusinessPhone: e.target.value })} data-testid="input-other-business-phone" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Mobile / Cell phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.otherPersonMobilePhone as string) || ""} onChange={(e) => updateFormData({ otherPersonMobilePhone: e.target.value })} data-testid="input-other-mobile-phone" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -4063,15 +4175,17 @@ function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
                 value={
                   authorisedRecipient === "registered_migration_agent" ? ((formData.agentEmail as string) || "") :
                   authorisedRecipient === "legal_practitioner" ? ((formData.legalEmail as string) || "") :
+                  authorisedRecipient === "another_person" ? ((formData.otherPersonEmail as string) || "") :
                   communicationEmail
                 }
                 onChange={
                   authorisedRecipient === "registered_migration_agent" ? (e) => updateFormData({ agentEmail: e.target.value }) :
                   authorisedRecipient === "legal_practitioner" ? (e) => updateFormData({ legalEmail: e.target.value }) :
+                  authorisedRecipient === "another_person" ? (e) => updateFormData({ otherPersonEmail: e.target.value }) :
                   undefined
                 }
-                readOnly={authorisedRecipient !== "registered_migration_agent" && authorisedRecipient !== "legal_practitioner"}
-                className={authorisedRecipient !== "registered_migration_agent" && authorisedRecipient !== "legal_practitioner" ? "bg-muted" : ""}
+                readOnly={authorisedRecipient === "no" || !authorisedRecipient}
+                className={authorisedRecipient === "no" || !authorisedRecipient ? "bg-muted" : ""}
                 data-testid="input-communication-email"
               />
               <Tooltip>
