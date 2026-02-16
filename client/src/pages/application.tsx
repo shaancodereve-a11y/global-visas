@@ -3368,6 +3368,303 @@ function Step5TravellingCompanions({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step6ContactDetails({ formData, updateFormData }: StepProps) {
+  const { user } = useAuth();
+  const emailAlreadySet = !!(formData.emailAddress as string);
+
+  useEffect(() => {
+    if (user?.email && !emailAlreadySet) {
+      updateFormData({ emailAddress: user.email });
+    }
+  }, [user?.email, emailAlreadySet]);
+
+  const DEPARTMENT_OFFICES = [
+    "Bangladesh, Dhaka",
+    "Brazil, Brasilia",
+    "Cambodia, Phnom Penh",
+    "Canada, Ottawa",
+    "Chile, Santiago de Chile",
+    "China, Beijing",
+    "China, Guangzhou",
+    "China, Hong Kong",
+    "China, Shanghai",
+    "Colombia, Bogota",
+    "Egypt, Cairo",
+    "Fiji, Suva",
+    "Germany, Berlin",
+    "India, Bengaluru",
+    "India, New Delhi",
+    "Indonesia, Jakarta",
+    "Iran, Tehran",
+    "Israel, Tel Aviv",
+    "Jordan, Amman",
+    "Kenya, Nairobi",
+    "Malaysia, Kuala Lumpur",
+    "Myanmar, Yangon",
+    "New Zealand, Wellington",
+    "Pakistan, Islamabad",
+    "Papua New Guinea, Port Moresby",
+    "Philippines, Manila",
+    "Republic of Turkiye, Ankara",
+    "Serbia, Belgrade",
+    "Singapore",
+    "South Africa, Pretoria",
+    "South Korea, Seoul",
+    "Sri Lanka, Colombo",
+    "Thailand, Bangkok",
+    "Timor-Leste, Dili",
+    "United Arab Emirates, Dubai",
+    "United Kingdom, London",
+    "United States, Washington",
+    "Vietnam, Hanoi",
+    "Vietnam, Ho Chi Minh City",
+  ];
+
+  const postalSameAsResidential = (formData.postalSameAsResidential as string) || "";
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-6" data-testid="text-step6-title">Contact details</h2>
+
+          <h3 className="text-base font-bold text-primary mb-2">Country of residence</h3>
+          <div className="grid grid-cols-3 items-center gap-4 mb-6">
+            <Label className="text-sm">Usual country of residence</Label>
+            <div className="col-span-2 flex items-center gap-2">
+              <Select value={(formData.usualCountryOfResidence as string) || ""} onValueChange={(val) => updateFormData({ usualCountryOfResidence: val })}>
+                <SelectTrigger data-testid="select-usual-country-residence">
+                  <SelectValue placeholder="" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent><p>The country where the applicant usually lives</p></TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          <h3 className="text-base font-bold text-primary mb-2">Department office</h3>
+          <p className="text-sm mb-3">The applicant may be required to attend an Australian Government Office for an interview. Which is the closest office to the applicant's current location?</p>
+          <div className="grid grid-cols-3 items-center gap-4 mb-6">
+            <Label className="text-sm">Office</Label>
+            <div className="col-span-2">
+              <Select value={(formData.departmentOffice as string) || ""} onValueChange={(val) => updateFormData({ departmentOffice: val })}>
+                <SelectTrigger data-testid="select-department-office">
+                  <SelectValue placeholder="" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENT_OFFICES.map((o) => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 mb-2">
+            <h3 className="text-base font-bold text-primary">Residential address</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent><p>The applicant's current residential address</p></TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-sm mb-3">Note that a street address is required. A post office address cannot be accepted as a residential address.</p>
+          <div className="space-y-3 mb-6">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Country</Label>
+              <div className="col-span-2">
+                <Select value={(formData.residentialCountry as string) || ""} onValueChange={(val) => updateFormData({ residentialCountry: val })}>
+                  <SelectTrigger data-testid="select-residential-country">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Address</Label>
+              <div className="col-span-2 flex items-center gap-2">
+                <Input value={(formData.residentialAddress1 as string) || ""} onChange={(e) => updateFormData({ residentialAddress1: e.target.value })} data-testid="input-residential-address1" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Street address line 1</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm"></Label>
+              <div className="col-span-2">
+                <Input value={(formData.residentialAddress2 as string) || ""} onChange={(e) => updateFormData({ residentialAddress2: e.target.value })} data-testid="input-residential-address2" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Suburb / Town</Label>
+              <div className="col-span-2">
+                <Input value={(formData.residentialSuburb as string) || ""} onChange={(e) => updateFormData({ residentialSuburb: e.target.value })} data-testid="input-residential-suburb" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">State or Province</Label>
+              <div className="col-span-2">
+                <Input value={(formData.residentialState as string) || ""} onChange={(e) => updateFormData({ residentialState: e.target.value })} data-testid="input-residential-state" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Postal code</Label>
+              <div className="col-span-2">
+                <Input value={(formData.residentialPostalCode as string) || ""} onChange={(e) => updateFormData({ residentialPostalCode: e.target.value })} className="w-48" data-testid="input-residential-postal-code" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 mb-2">
+            <h3 className="text-base font-bold text-primary">Contact telephone numbers</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent><p>Enter numbers only with no spaces</p></TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-sm mb-3">Enter numbers only with no spaces.</p>
+          <div className="space-y-3 mb-6">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Home phone</Label>
+              <div className="col-span-2">
+                <Input value={(formData.homePhone as string) || ""} onChange={(e) => updateFormData({ homePhone: e.target.value })} data-testid="input-home-phone" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Business phone</Label>
+              <div className="col-span-2">
+                <Input value={(formData.businessPhone as string) || ""} onChange={(e) => updateFormData({ businessPhone: e.target.value })} data-testid="input-business-phone" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Mobile / Cell phone</Label>
+              <div className="col-span-2">
+                <Input value={(formData.mobilePhone as string) || ""} onChange={(e) => updateFormData({ mobilePhone: e.target.value })} data-testid="input-mobile-phone" />
+              </div>
+            </div>
+          </div>
+
+          <h3 className="text-base font-bold text-primary mb-2">Postal address</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <p className="text-sm">Is the postal address the same as the residential address?</p>
+            <RadioGroup
+              value={postalSameAsResidential}
+              onValueChange={(val) => updateFormData({ postalSameAsResidential: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-postal-same"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="postal-same-yes" data-testid="radio-postal-same-yes" />
+                <Label htmlFor="postal-same-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="postal-same-no" data-testid="radio-postal-same-no" />
+                <Label htmlFor="postal-same-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent><p>Select No if the postal address is different from the residential address</p></TooltipContent>
+            </Tooltip>
+          </div>
+
+          {postalSameAsResidential === "no" && (
+            <div className="space-y-3 mb-6">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Country</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.postalCountry as string) || ""} onValueChange={(val) => updateFormData({ postalCountry: val })}>
+                    <SelectTrigger data-testid="select-postal-country">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Address</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={(formData.postalAddress1 as string) || ""} onChange={(e) => updateFormData({ postalAddress1: e.target.value })} data-testid="input-postal-address1" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Postal address line 1</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm"></Label>
+                <div className="col-span-2">
+                  <Input value={(formData.postalAddress2 as string) || ""} onChange={(e) => updateFormData({ postalAddress2: e.target.value })} data-testid="input-postal-address2" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Suburb / Town</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.postalSuburb as string) || ""} onChange={(e) => updateFormData({ postalSuburb: e.target.value })} data-testid="input-postal-suburb" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">State or Province</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.postalState as string) || ""} onChange={(e) => updateFormData({ postalState: e.target.value })} data-testid="input-postal-state" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Postal code</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.postalPostalCode as string) || ""} onChange={(e) => updateFormData({ postalPostalCode: e.target.value })} className="w-48" data-testid="input-postal-postal-code" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <h3 className="text-base font-bold text-primary mb-2">Email address</h3>
+          <div className="grid grid-cols-3 items-center gap-4">
+            <Label className="text-sm">Email address</Label>
+            <div className="col-span-2 flex items-center gap-2">
+              <Input value={(formData.emailAddress as string) || ""} onChange={(e) => updateFormData({ emailAddress: e.target.value })} data-testid="input-email-address" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent><p>Email address for correspondence about this application</p></TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -3634,6 +3931,8 @@ export default function ApplicationPage() {
         return <Step4CriticalDataConfirmation formData={formData} updateFormData={updateFormData} />;
       case 5:
         return <Step5TravellingCompanions formData={formData} updateFormData={updateFormData} />;
+      case 6:
+        return <Step6ContactDetails formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
