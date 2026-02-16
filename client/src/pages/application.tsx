@@ -3097,6 +3097,13 @@ function Step4CriticalDataConfirmation({ formData, updateFormData }: StepProps) 
               </TooltipContent>
             </Tooltip>
           </div>
+
+          {(formData.criticalDataConfirmed as string) === "no" && (
+            <div className="flex items-start gap-2 mt-3 border border-destructive rounded-md p-3" data-testid="text-critical-no-message">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <p className="text-sm">Press the 'Previous' button to return to the previous page and correct the details.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -3297,11 +3304,6 @@ export default function ApplicationPage() {
         return;
       }
       if (formData.criticalDataConfirmed === "no") {
-        setCurrentStep(3);
-        toast({
-          title: "Please correct your information",
-          description: "Going back to Step 3 so you can update your details.",
-        });
         return;
       }
     }
