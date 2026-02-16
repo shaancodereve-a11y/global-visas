@@ -3110,6 +3110,264 @@ function Step4CriticalDataConfirmation({ formData, updateFormData }: StepProps) 
   );
 }
 
+function Step5TravellingCompanions({ formData, updateFormData }: StepProps) {
+  const RELATIONSHIP_OPTIONS = [
+    "Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
+    "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
+    "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
+    "Sister/Brother in law", "Spouse / De facto partner", "Step child",
+    "Step parent", "Step brother", "Step sister", "Uncle"
+  ];
+
+  const [companionFormOpen, setCompanionFormOpen] = useState(false);
+  const [compRelationship, setCompRelationship] = useState("");
+  const [compFamilyName, setCompFamilyName] = useState("");
+  const [compGivenNames, setCompGivenNames] = useState("");
+  const [compSex, setCompSex] = useState("");
+  const [compDob, setCompDob] = useState("");
+  const [editingCompanionIndex, setEditingCompanionIndex] = useState<number | null>(null);
+
+  const companions = (formData.travellingCompanions as Array<{
+    relationship: string; familyName: string; givenNames: string; sex: string; dob: string;
+  }>) || [];
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const resetForm = () => {
+    setCompRelationship("");
+    setCompFamilyName("");
+    setCompGivenNames("");
+    setCompSex("");
+    setCompDob("");
+    setEditingCompanionIndex(null);
+    setCompanionFormOpen(false);
+  };
+
+  const confirmCompanion = () => {
+    const entry = {
+      relationship: compRelationship,
+      familyName: compFamilyName,
+      givenNames: compGivenNames,
+      sex: compSex,
+      dob: compDob,
+    };
+    if (editingCompanionIndex !== null) {
+      const updated = [...companions];
+      updated[editingCompanionIndex] = entry;
+      updateFormData({ travellingCompanions: updated });
+    } else {
+      updateFormData({ travellingCompanions: [...companions, entry] });
+    }
+    resetForm();
+  };
+
+  const editCompanion = (index: number) => {
+    const c = companions[index];
+    setCompRelationship(c.relationship);
+    setCompFamilyName(c.familyName);
+    setCompGivenNames(c.givenNames);
+    setCompSex(c.sex);
+    setCompDob(c.dob);
+    setEditingCompanionIndex(index);
+    setCompanionFormOpen(true);
+  };
+
+  const removeCompanion = (index: number) => {
+    const updated = companions.filter((_, i) => i !== index);
+    updateFormData({ travellingCompanions: updated });
+  };
+
+  const hasTravellingCompanions = formData.hasTravellingCompanions as string;
+
+  if (companionFormOpen) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-companion-form-title">Travelling companion</h2>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Relationship to the applicant</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Select value={compRelationship} onValueChange={setCompRelationship}>
+                    <SelectTrigger data-testid="select-comp-relationship">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RELATIONSHIP_OPTIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>The relationship of this person to the applicant</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Family name</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={compFamilyName} onChange={(e) => setCompFamilyName(e.target.value)} data-testid="input-comp-family-name" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Family name as shown in passport or travel document</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Given names</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={compGivenNames} onChange={(e) => setCompGivenNames(e.target.value)} data-testid="input-comp-given-names" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Given names as shown in passport or travel document</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Sex</Label>
+                <div className="col-span-2">
+                  <RadioGroup value={compSex} onValueChange={setCompSex} className="flex items-center gap-6" data-testid="radio-comp-sex">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="female" id="comp-sex-female" />
+                      <Label htmlFor="comp-sex-female" className="text-sm cursor-pointer">Female</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="male" id="comp-sex-male" />
+                      <Label htmlFor="comp-sex-male" className="text-sm cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="other" id="comp-sex-other" />
+                      <Label htmlFor="comp-sex-other" className="text-sm cursor-pointer">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date of birth</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={compDob} onChange={(e) => setCompDob(e.target.value)} className="w-48" data-testid="input-comp-dob" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <Button variant="outline" size="sm" type="button" onClick={resetForm} data-testid="button-comp-cancel">Cancel</Button>
+              <Button variant="outline" size="sm" type="button" onClick={confirmCompanion} data-testid="button-comp-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-step5-title">Travelling companions</h2>
+          <p className="text-sm mb-4">Each person travelling to Australia must submit a separate visitor visa application. This includes children and other family members. Listing a person's name on this page does NOT mean that the person has applied for a visa.</p>
+
+          <div className="flex items-center gap-2 mb-4">
+            <p className="text-sm">Are there any other persons travelling with the applicant to Australia?</p>
+            <RadioGroup
+              value={hasTravellingCompanions || ""}
+              onValueChange={(val) => updateFormData({ hasTravellingCompanions: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-travelling-companions"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="companions-yes" data-testid="radio-companions-yes" />
+                <Label htmlFor="companions-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="companions-no" data-testid="radio-companions-no" />
+                <Label htmlFor="companions-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent><p>Indicate if there are other people travelling with the applicant</p></TooltipContent>
+            </Tooltip>
+          </div>
+
+          {hasTravellingCompanions === "yes" && (
+            <div className="border rounded-md p-4">
+              <button type="button" className="text-sm text-primary underline mb-3 cursor-pointer" onClick={() => { resetForm(); setCompanionFormOpen(true); }} data-testid="link-add-companion">Add details</button>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Family name</th>
+                      <th className="text-left p-2 font-medium">Given names</th>
+                      <th className="text-left p-2 font-medium">Date of birth</th>
+                      <th className="text-left p-2 font-medium">Relationship</th>
+                      <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete companion entries</p></TooltipContent></Tooltip></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companions.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-2">
+                          <Button variant="outline" size="sm" type="button" onClick={() => { resetForm(); setCompanionFormOpen(true); }} data-testid="button-add-companion">Add</Button>
+                        </td>
+                      </tr>
+                    ) : (
+                      <>
+                        {companions.map((c, i) => (
+                          <tr key={i} className="border-b">
+                            <td className="p-2" data-testid={`text-comp-family-${i}`}>{c.familyName}</td>
+                            <td className="p-2" data-testid={`text-comp-given-${i}`}>{c.givenNames}</td>
+                            <td className="p-2" data-testid={`text-comp-dob-${i}`}>{formatDate(c.dob)}</td>
+                            <td className="p-2" data-testid={`text-comp-relationship-${i}`}>{c.relationship}</td>
+                            <td className="p-2">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" type="button" onClick={() => editCompanion(i)} data-testid={`button-edit-comp-${i}`}>Edit</Button>
+                                <Button variant="outline" size="sm" type="button" onClick={() => removeCompanion(i)} data-testid={`button-delete-comp-${i}`}>Delete</Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td colSpan={5} className="p-2">
+                            <Button variant="outline" size="sm" type="button" onClick={() => { resetForm(); setCompanionFormOpen(true); }} data-testid="button-add-more-companion">Add</Button>
+                          </td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <p className="text-sm mt-4">You can link applications for a family or other people travelling together by creating a group. This helps the Department to process the applications at the same time. To add this application to a group, select Prev until you reach the application context page (page 2 of this form) and update the group details section.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -3308,6 +3566,17 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 5) {
+      if (!formData.hasTravellingCompanions) {
+        toast({
+          title: "Required field",
+          description: "Please indicate whether there are other persons travelling with the applicant.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -3363,6 +3632,8 @@ export default function ApplicationPage() {
         return <Step3Applicant formData={formData} updateFormData={updateFormData} validationErrors={validationErrors} />;
       case 4:
         return <Step4CriticalDataConfirmation formData={formData} updateFormData={updateFormData} />;
+      case 5:
+        return <Step5TravellingCompanions formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
