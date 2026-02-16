@@ -4485,6 +4485,518 @@ function Step8NonAccompanyingFamily({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
+  const LENGTH_OF_STAY_OPTIONS = [
+    "Up to 3 months", "Up to 6 months", "Up to 12 months"
+  ];
+
+  const RELATIONSHIP_OPTIONS = [
+    "Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
+    "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
+    "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
+    "Sister/Brother in law", "Spouse / De facto partner", "Step child",
+    "Step parent", "Step brother", "Step sister", "Uncle"
+  ];
+
+  const [entryFormOpen, setEntryFormOpen] = useState(false);
+  const [entryReason, setEntryReason] = useState("");
+  const [entryDateFrom, setEntryDateFrom] = useState("");
+  const [entryDateTo, setEntryDateTo] = useState("");
+  const [editingEntryIndex, setEditingEntryIndex] = useState<number | null>(null);
+
+  const [studyFormOpen, setStudyFormOpen] = useState(false);
+  const [studyCourseName, setStudyCourseName] = useState("");
+  const [studyInstitution, setStudyInstitution] = useState("");
+  const [studyDateFrom, setStudyDateFrom] = useState("");
+  const [studyDateTo, setStudyDateTo] = useState("");
+  const [editingStudyIndex, setEditingStudyIndex] = useState<number | null>(null);
+
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [contactFamilyName, setContactFamilyName] = useState("");
+  const [contactGivenNames, setContactGivenNames] = useState("");
+  const [contactDob, setContactDob] = useState("");
+  const [contactRelationship, setContactRelationship] = useState("");
+  const [editingContactIndex, setEditingContactIndex] = useState<number | null>(null);
+
+  const entries = (formData.entryDates as Array<{ reason: string; dateFrom: string; dateTo: string }>) || [];
+  const studies = (formData.studyCourses as Array<{ courseName: string; institution: string; dateFrom: string; dateTo: string }>) || [];
+  const contacts = (formData.australiaContacts as Array<{ familyName: string; givenNames: string; dob: string; relationship: string }>) || [];
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const resetEntryForm = () => { setEntryReason(""); setEntryDateFrom(""); setEntryDateTo(""); setEditingEntryIndex(null); setEntryFormOpen(false); };
+  const resetStudyForm = () => { setStudyCourseName(""); setStudyInstitution(""); setStudyDateFrom(""); setStudyDateTo(""); setEditingStudyIndex(null); setStudyFormOpen(false); };
+  const resetContactForm = () => { setContactFamilyName(""); setContactGivenNames(""); setContactDob(""); setContactRelationship(""); setEditingContactIndex(null); setContactFormOpen(false); };
+
+  const confirmEntry = () => {
+    const entry = { reason: entryReason, dateFrom: entryDateFrom, dateTo: entryDateTo };
+    if (editingEntryIndex !== null) { const updated = [...entries]; updated[editingEntryIndex] = entry; updateFormData({ entryDates: updated }); }
+    else { updateFormData({ entryDates: [...entries, entry] }); }
+    resetEntryForm();
+  };
+  const editEntry = (i: number) => { const e = entries[i]; setEntryReason(e.reason); setEntryDateFrom(e.dateFrom); setEntryDateTo(e.dateTo); setEditingEntryIndex(i); setEntryFormOpen(true); };
+  const removeEntry = (i: number) => { updateFormData({ entryDates: entries.filter((_, idx) => idx !== i) }); };
+
+  const confirmStudy = () => {
+    const entry = { courseName: studyCourseName, institution: studyInstitution, dateFrom: studyDateFrom, dateTo: studyDateTo };
+    if (editingStudyIndex !== null) { const updated = [...studies]; updated[editingStudyIndex] = entry; updateFormData({ studyCourses: updated }); }
+    else { updateFormData({ studyCourses: [...studies, entry] }); }
+    resetStudyForm();
+  };
+  const editStudy = (i: number) => { const s = studies[i]; setStudyCourseName(s.courseName); setStudyInstitution(s.institution); setStudyDateFrom(s.dateFrom); setStudyDateTo(s.dateTo); setEditingStudyIndex(i); setStudyFormOpen(true); };
+  const removeStudy = (i: number) => { updateFormData({ studyCourses: studies.filter((_, idx) => idx !== i) }); };
+
+  const confirmContact = () => {
+    const entry = { familyName: contactFamilyName, givenNames: contactGivenNames, dob: contactDob, relationship: contactRelationship };
+    if (editingContactIndex !== null) { const updated = [...contacts]; updated[editingContactIndex] = entry; updateFormData({ australiaContacts: updated }); }
+    else { updateFormData({ australiaContacts: [...contacts, entry] }); }
+    resetContactForm();
+  };
+  const editContact = (i: number) => { const c = contacts[i]; setContactFamilyName(c.familyName); setContactGivenNames(c.givenNames); setContactDob(c.dob); setContactRelationship(c.relationship); setEditingContactIndex(i); setContactFormOpen(true); };
+  const removeContact = (i: number) => { updateFormData({ australiaContacts: contacts.filter((_, idx) => idx !== i) }); };
+
+  if (entryFormOpen) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-entry-form-title">Entry details</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Reason</Label>
+                <div className="col-span-2">
+                  <Input value={entryReason} onChange={(e) => setEntryReason(e.target.value)} data-testid="input-entry-reason" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date from</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={entryDateFrom} onChange={(e) => setEntryDateFrom(e.target.value)} className="w-48" data-testid="input-entry-date-from" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date to</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={entryDateTo} onChange={(e) => setEntryDateTo(e.target.value)} className="w-48" data-testid="input-entry-date-to" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <Button variant="outline" size="sm" type="button" onClick={resetEntryForm} data-testid="button-entry-cancel">Cancel</Button>
+              <Button variant="outline" size="sm" type="button" onClick={confirmEntry} data-testid="button-entry-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (studyFormOpen) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-study-form-title">Study details</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Course name</Label>
+                <div className="col-span-2">
+                  <Input value={studyCourseName} onChange={(e) => setStudyCourseName(e.target.value)} data-testid="input-study-course" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Institution name</Label>
+                <div className="col-span-2">
+                  <Input value={studyInstitution} onChange={(e) => setStudyInstitution(e.target.value)} data-testid="input-study-institution" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date from</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={studyDateFrom} onChange={(e) => setStudyDateFrom(e.target.value)} className="w-48" data-testid="input-study-date-from" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date to</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={studyDateTo} onChange={(e) => setStudyDateTo(e.target.value)} className="w-48" data-testid="input-study-date-to" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <Button variant="outline" size="sm" type="button" onClick={resetStudyForm} data-testid="button-study-cancel">Cancel</Button>
+              <Button variant="outline" size="sm" type="button" onClick={confirmStudy} data-testid="button-study-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (contactFormOpen) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-contact-form-title">Relative, friend or contact details</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Relationship to the applicant</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Select value={contactRelationship} onValueChange={setContactRelationship}>
+                    <SelectTrigger data-testid="select-contact-relationship">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RELATIONSHIP_OPTIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>The relationship of this person to the applicant</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Family name</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={contactFamilyName} onChange={(e) => setContactFamilyName(e.target.value)} data-testid="input-contact-family-name" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Family name of the relative, friend or contact</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Given names</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={contactGivenNames} onChange={(e) => setContactGivenNames(e.target.value)} data-testid="input-contact-given-names" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Given names of the relative, friend or contact</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date of birth</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={contactDob} onChange={(e) => setContactDob(e.target.value)} className="w-48" data-testid="input-contact-dob" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <Button variant="outline" size="sm" type="button" onClick={resetContactForm} data-testid="button-contact-cancel">Cancel</Button>
+              <Button variant="outline" size="sm" type="button" onClick={confirmContact} data-testid="button-contact-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const multipleEntry = formData.multipleEntry as string;
+  const knowsEntryDates = formData.knowsEntryDates as string;
+  const willStudy = formData.willStudy as string;
+  const hasAustraliaContacts = formData.hasAustraliaContacts as string;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-2" data-testid="text-step9-title">Entry to Australia</h2>
+
+          <div className="flex items-center gap-1 mb-4">
+            <h3 className="text-base font-bold text-primary">Proposed period of stay</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs"><p>Details about the proposed period of stay in Australia</p></TooltipContent>
+            </Tooltip>
+          </div>
+
+          <p className="text-sm mb-2">Does the applicant intend to enter Australia on more than one occasion?</p>
+          <div className="flex justify-center mb-4">
+            <RadioGroup
+              value={multipleEntry || ""}
+              onValueChange={(val) => updateFormData({ multipleEntry: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-multiple-entry"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="multi-entry-yes" data-testid="radio-multi-entry-yes" />
+                <Label htmlFor="multi-entry-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="multi-entry-no" data-testid="radio-multi-entry-no" />
+                <Label htmlFor="multi-entry-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <p className="text-sm mb-2">How long does the applicant plan to stay in Australia?</p>
+          {multipleEntry === "yes" && (
+            <p className="text-sm mb-3 text-muted-foreground">Note: If the applicant intends to enter Australia more than once, select the longest period they plan to stay in Australia on a single visit.</p>
+          )}
+
+          <div className="space-y-3 mb-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Length of stay in Australia</Label>
+              <div className="col-span-2">
+                <Select value={(formData.lengthOfStay as string) || ""} onValueChange={(val) => updateFormData({ lengthOfStay: val })}>
+                  <SelectTrigger data-testid="select-length-of-stay">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LENGTH_OF_STAY_OPTIONS.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Planned arrival date</Label>
+              <div className="col-span-2">
+                <Input type="date" value={(formData.plannedArrivalDate as string) || ""} onChange={(e) => updateFormData({ plannedArrivalDate: e.target.value })} className="w-48" data-testid="input-arrival-date" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Planned final departure date</Label>
+              <div className="col-span-2">
+                <Input type="date" value={(formData.plannedDepartureDate as string) || ""} onChange={(e) => updateFormData({ plannedDepartureDate: e.target.value })} className="w-48" data-testid="input-departure-date" />
+              </div>
+            </div>
+          </div>
+
+          <p className="text-sm mb-4">Note: If granted, the stay period may be less than the period requested. The applicant should check the Grant Notification Letter to confirm their period of stay in Australia.</p>
+
+          {multipleEntry === "yes" && (
+            <>
+              <p className="text-sm mb-2">Does the applicant know the dates of entry for each occasion after first entry to Australia?</p>
+              <div className="flex justify-center mb-4">
+                <RadioGroup
+                  value={knowsEntryDates || ""}
+                  onValueChange={(val) => updateFormData({ knowsEntryDates: val })}
+                  className="flex items-center gap-6"
+                  data-testid="radio-knows-entry-dates"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="knows-dates-yes" data-testid="radio-knows-dates-yes" />
+                    <Label htmlFor="knows-dates-yes" className="text-sm cursor-pointer">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="knows-dates-no" data-testid="radio-knows-dates-no" />
+                    <Label htmlFor="knows-dates-no" className="text-sm cursor-pointer">No</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {knowsEntryDates === "yes" && (
+                <div className="border rounded-md p-4">
+                  <button type="button" className="text-sm text-primary underline mb-3 cursor-pointer" onClick={() => { resetEntryForm(); setEntryFormOpen(true); }} data-testid="link-add-entry">Add details</button>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-primary text-primary-foreground">
+                          <th className="text-left p-2 font-medium">Reason</th>
+                          <th className="text-left p-2 font-medium">Date from</th>
+                          <th className="text-left p-2 font-medium">Date to</th>
+                          <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete entry details</p></TooltipContent></Tooltip></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {entries.length === 0 ? (
+                          <tr><td colSpan={4} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetEntryForm(); setEntryFormOpen(true); }} data-testid="button-add-entry">Add</Button></td></tr>
+                        ) : (
+                          <>
+                            {entries.map((e, i) => (
+                              <tr key={i} className="border-b">
+                                <td className="p-2" data-testid={`text-entry-reason-${i}`}>{e.reason}</td>
+                                <td className="p-2" data-testid={`text-entry-from-${i}`}>{formatDate(e.dateFrom)}</td>
+                                <td className="p-2" data-testid={`text-entry-to-${i}`}>{formatDate(e.dateTo)}</td>
+                                <td className="p-2">
+                                  <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" type="button" onClick={() => editEntry(i)} data-testid={`button-edit-entry-${i}`}>Edit</Button>
+                                    <Button variant="outline" size="sm" type="button" onClick={() => removeEntry(i)} data-testid={`button-delete-entry-${i}`}>Delete</Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                            <tr><td colSpan={4} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetEntryForm(); setEntryFormOpen(true); }} data-testid="button-add-more-entry">Add</Button></td></tr>
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-1 mb-4">
+            <h3 className="text-base font-bold text-primary">Study while in Australia</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs"><p>Details about any study the applicant plans to undertake while in Australia</p></TooltipContent>
+            </Tooltip>
+          </div>
+
+          <p className="text-sm mb-2">Will the applicant undertake a course of study in Australia?</p>
+          <div className="flex justify-center mb-4">
+            <RadioGroup
+              value={willStudy || ""}
+              onValueChange={(val) => updateFormData({ willStudy: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-will-study"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="study-yes" data-testid="radio-study-yes" />
+                <Label htmlFor="study-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="study-no" data-testid="radio-study-no" />
+                <Label htmlFor="study-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {willStudy === "yes" && (
+            <>
+              <p className="text-sm mb-3">Note: Visitor visa permits the visa holder to study only for a maximum period of 3 months.</p>
+              <div className="border rounded-md p-4">
+                <button type="button" className="text-sm text-primary underline mb-3 cursor-pointer" onClick={() => { resetStudyForm(); setStudyFormOpen(true); }} data-testid="link-add-study">Add details</button>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-primary text-primary-foreground">
+                        <th className="text-left p-2 font-medium">Course name</th>
+                        <th className="text-left p-2 font-medium">Institution name</th>
+                        <th className="text-left p-2 font-medium">Date from</th>
+                        <th className="text-left p-2 font-medium">Date to</th>
+                        <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete study details</p></TooltipContent></Tooltip></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studies.length === 0 ? (
+                        <tr><td colSpan={5} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetStudyForm(); setStudyFormOpen(true); }} data-testid="button-add-study">Add</Button></td></tr>
+                      ) : (
+                        <>
+                          {studies.map((s, i) => (
+                            <tr key={i} className="border-b">
+                              <td className="p-2" data-testid={`text-study-course-${i}`}>{s.courseName}</td>
+                              <td className="p-2" data-testid={`text-study-institution-${i}`}>{s.institution}</td>
+                              <td className="p-2" data-testid={`text-study-from-${i}`}>{formatDate(s.dateFrom)}</td>
+                              <td className="p-2" data-testid={`text-study-to-${i}`}>{formatDate(s.dateTo)}</td>
+                              <td className="p-2">
+                                <div className="flex gap-2">
+                                  <Button variant="outline" size="sm" type="button" onClick={() => editStudy(i)} data-testid={`button-edit-study-${i}`}>Edit</Button>
+                                  <Button variant="outline" size="sm" type="button" onClick={() => removeStudy(i)} data-testid={`button-delete-study-${i}`}>Delete</Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          <tr><td colSpan={5} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetStudyForm(); setStudyFormOpen(true); }} data-testid="button-add-more-study">Add</Button></td></tr>
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-base font-bold text-primary mb-4">Relatives, friends or contacts in Australia</h3>
+
+          <p className="text-sm mb-2">Will the applicant visit any relatives, friends or contacts while in Australia?</p>
+          <div className="flex justify-center mb-4">
+            <RadioGroup
+              value={hasAustraliaContacts || ""}
+              onValueChange={(val) => updateFormData({ hasAustraliaContacts: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-australia-contacts"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="contacts-yes" data-testid="radio-contacts-yes" />
+                <Label htmlFor="contacts-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="contacts-no" data-testid="radio-contacts-no" />
+                <Label htmlFor="contacts-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {hasAustraliaContacts === "yes" && (
+            <div className="border rounded-md p-4">
+              <button type="button" className="text-sm text-primary underline mb-3 cursor-pointer" onClick={() => { resetContactForm(); setContactFormOpen(true); }} data-testid="link-add-contact">Add details</button>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Family name</th>
+                      <th className="text-left p-2 font-medium">Given names</th>
+                      <th className="text-left p-2 font-medium">Date of birth</th>
+                      <th className="text-left p-2 font-medium">Relationship</th>
+                      <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete contact details</p></TooltipContent></Tooltip></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contacts.length === 0 ? (
+                      <tr><td colSpan={5} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetContactForm(); setContactFormOpen(true); }} data-testid="button-add-contact">Add</Button></td></tr>
+                    ) : (
+                      <>
+                        {contacts.map((c, i) => (
+                          <tr key={i} className="border-b">
+                            <td className="p-2" data-testid={`text-contact-family-${i}`}>{c.familyName}</td>
+                            <td className="p-2" data-testid={`text-contact-given-${i}`}>{c.givenNames}</td>
+                            <td className="p-2" data-testid={`text-contact-dob-${i}`}>{formatDate(c.dob)}</td>
+                            <td className="p-2" data-testid={`text-contact-relationship-${i}`}>{c.relationship}</td>
+                            <td className="p-2">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" type="button" onClick={() => editContact(i)} data-testid={`button-edit-contact-${i}`}>Edit</Button>
+                                <Button variant="outline" size="sm" type="button" onClick={() => removeContact(i)} data-testid={`button-delete-contact-${i}`}>Delete</Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr><td colSpan={5} className="p-2"><Button variant="outline" size="sm" type="button" onClick={() => { resetContactForm(); setContactFormOpen(true); }} data-testid="button-add-more-contact">Add</Button></td></tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -4716,6 +5228,21 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 9) {
+      if (!formData.multipleEntry) {
+        toast({ title: "Required field", description: "Please indicate whether the applicant intends to enter Australia on more than one occasion.", variant: "destructive" });
+        return;
+      }
+      if (!formData.willStudy) {
+        toast({ title: "Required field", description: "Please indicate whether the applicant will undertake a course of study in Australia.", variant: "destructive" });
+        return;
+      }
+      if (!formData.hasAustraliaContacts) {
+        toast({ title: "Required field", description: "Please indicate whether the applicant will visit any relatives, friends or contacts in Australia.", variant: "destructive" });
+        return;
+      }
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -4779,6 +5306,8 @@ export default function ApplicationPage() {
         return <Step7AuthorisedRecipient formData={formData} updateFormData={updateFormData} />;
       case 8:
         return <Step8NonAccompanyingFamily formData={formData} updateFormData={updateFormData} />;
+      case 9:
+        return <Step9EntryToAustralia formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
