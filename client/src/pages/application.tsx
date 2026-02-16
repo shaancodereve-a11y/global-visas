@@ -937,7 +937,9 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [travelDocDialogOpen, setTravelDocDialogOpen] = useState(false);
   const [travelDocType, setTravelDocType] = useState("");
   const [travelDocNationality, setTravelDocNationality] = useState("");
-  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string }>) || [];
+  const [travelDocDob, setTravelDocDob] = useState("");
+  const [travelDocNumber, setTravelDocNumber] = useState("");
+  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string }>) || [];
 
   const autoName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
 
@@ -946,13 +948,16 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
       const updated = [...otherTravelDocs, {
         docType: travelDocType,
         name: travelDocType === "DFTTA" ? autoName : "",
-        docNumber: "",
-        country: "",
+        docNumber: travelDocNumber,
+        country: travelDocType === "DFTTA" ? "AUSTRALIA - AUS" : "",
         nationality: travelDocNationality,
+        dob: travelDocDob,
       }];
       updateFormData({ otherTravelDocs: updated });
       setTravelDocType("");
       setTravelDocNationality("");
+      setTravelDocDob("");
+      setTravelDocNumber("");
       setTravelDocDialogOpen(false);
     }
   };
@@ -1750,6 +1755,9 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                   <div className="px-3 py-2 border-t">
                     <Button variant="outline" size="sm" onClick={() => {
                       setTravelDocType("");
+                      setTravelDocNationality("");
+                      setTravelDocDob("");
+                      setTravelDocNumber("");
                       setTravelDocDialogOpen(true);
                     }} data-testid="button-add-travel-doc">
                       Add
@@ -2038,14 +2046,46 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
 
             {travelDocType === "DFTTA" && (
               <>
+                <p className="text-sm text-muted-foreground">Enter details as shown on the document for travel.</p>
                 <div>
                   <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={autoName}
+                      readOnly
+                      className="bg-muted/50"
+                      data-testid="input-travel-doc-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Name auto-populated from applicant details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of birth</Label>
                   <Input
-                    value={autoName}
-                    readOnly
-                    className="bg-muted/50"
-                    data-testid="input-travel-doc-name"
+                    type="date"
+                    value={travelDocDob}
+                    onChange={(e) => setTravelDocDob(e.target.value)}
+                    data-testid="input-travel-doc-dob"
                   />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Document number</Label>
+                  <Input
+                    value={travelDocNumber}
+                    onChange={(e) => setTravelDocNumber(e.target.value)}
+                    data-testid="input-travel-doc-number"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <p className="text-sm font-medium">AUSTRALIA - AUS</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium mb-1 block">Nationality of document holder</Label>
