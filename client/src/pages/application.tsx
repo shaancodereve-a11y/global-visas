@@ -936,13 +936,23 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
 
   const [travelDocDialogOpen, setTravelDocDialogOpen] = useState(false);
   const [travelDocType, setTravelDocType] = useState("");
-  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string }>) || [];
+  const [travelDocNationality, setTravelDocNationality] = useState("");
+  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string }>) || [];
+
+  const autoName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
 
   const addTravelDoc = () => {
     if (travelDocType) {
-      const updated = [...otherTravelDocs, { docType: travelDocType, name: "", docNumber: "", country: "" }];
+      const updated = [...otherTravelDocs, {
+        docType: travelDocType,
+        name: travelDocType === "DFTTA" ? autoName : "",
+        docNumber: "",
+        country: "",
+        nationality: travelDocNationality,
+      }];
       updateFormData({ otherTravelDocs: updated });
       setTravelDocType("");
+      setTravelDocNationality("");
       setTravelDocDialogOpen(false);
     }
   };
@@ -2025,6 +2035,33 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 </Tooltip>
               </div>
             </div>
+
+            {travelDocType === "DFTTA" && (
+              <>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <Input
+                    value={autoName}
+                    readOnly
+                    className="bg-muted/50"
+                    data-testid="input-travel-doc-name"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Nationality of document holder</Label>
+                  <Select value={travelDocNationality} onValueChange={setTravelDocNationality}>
+                    <SelectTrigger data-testid="select-travel-doc-nationality">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter className="flex justify-between gap-2 sm:justify-between">
             <Button variant="outline" onClick={() => setTravelDocDialogOpen(false)} data-testid="button-cancel-travel-doc">
