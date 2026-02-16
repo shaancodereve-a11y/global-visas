@@ -2131,6 +2131,39 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="health-exam-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasHealthExamination === "yes" && (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Give details</Label>
+                  <Textarea
+                    value={(formData.healthExaminationDetails as string) || ""}
+                    onChange={(e) => updateFormData({ healthExaminationDetails: e.target.value })}
+                    className="min-h-[100px]"
+                    data-testid="textarea-health-exam-details"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Label className="text-sm font-medium">HAP ID (If available)</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>The HAP ID is a unique identifier assigned when a health examination is arranged through the department's health services.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input
+                    value={(formData.healthExaminationHapId as string) || ""}
+                    onChange={(e) => updateFormData({ healthExaminationHapId: e.target.value })}
+                    className="max-w-md"
+                    data-testid="input-health-exam-hap-id"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
