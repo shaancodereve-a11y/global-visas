@@ -3665,6 +3665,93 @@ function Step6ContactDetails({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
+  const { user } = useAuth();
+  const authorisedRecipient = (formData.authorisedRecipient as string) || "";
+  const communicationEmail = (formData.emailAddress as string) || user?.email || "";
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-1 mb-4">
+            <h2 className="text-lg font-bold text-primary" data-testid="text-step7-title">Authorised recipient</h2>
+          </div>
+          <p className="text-sm mb-3">Does the applicant authorise another person to receive written correspondence on their behalf?</p>
+          <p className="text-sm mb-4">This authorises the department to send the authorised person all written correspondence that would otherwise be sent directly to the applicant.</p>
+
+          <div className="flex justify-center mb-4">
+            <RadioGroup
+              value={authorisedRecipient}
+              onValueChange={(val) => updateFormData({ authorisedRecipient: val })}
+              className="space-y-2"
+              data-testid="radio-authorised-recipient"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="auth-no" data-testid="radio-auth-no" />
+                <Label htmlFor="auth-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="registered_migration_agent" id="auth-migration" data-testid="radio-auth-migration" />
+                <Label htmlFor="auth-migration" className="text-sm cursor-pointer">Yes, a registered migration agent</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="legal_practitioner" id="auth-legal" data-testid="radio-auth-legal" />
+                <Label htmlFor="auth-legal" className="text-sm cursor-pointer">Yes, a legal practitioner</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="another_person" id="auth-another" data-testid="radio-auth-another" />
+                <Label htmlFor="auth-another" className="text-sm cursor-pointer">Yes, another person</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <p className="text-sm">This person is referred to as the 'authorised recipient'.</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs"><p>An authorised recipient is a person authorised by the applicant to receive written correspondence from the department on their behalf.</p></TooltipContent>
+            </Tooltip>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-1 mb-4">
+            <h3 className="text-base font-bold text-primary">Electronic communication</h3>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs"><p>The Department communicates electronically where possible</p></TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-sm mb-2">The Department prefers to communicate electronically as this provides a faster method of communication.</p>
+          <p className="text-sm mb-4">All correspondence, including notification of the outcome of the application will be sent to:</p>
+
+          <div className="grid grid-cols-3 items-center gap-4 mb-4">
+            <Label className="text-sm">Email address</Label>
+            <div className="col-span-2 flex items-center gap-2">
+              <Input value={communicationEmail} readOnly className="bg-muted" data-testid="input-communication-email" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                </TooltipTrigger>
+                <TooltipContent><p>Email address for all correspondence about this application</p></TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          <p className="text-sm"><span className="font-bold">Note:</span> The holder of this email address may receive a verification email from the Department if the address has not already been verified. If the address holder receives a verification email, they should click on the link to verify their address before this application is submitted.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -3874,6 +3961,17 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 7) {
+      if (!formData.authorisedRecipient) {
+        toast({
+          title: "Required field",
+          description: "Please select whether the applicant authorises another person to receive correspondence.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -3933,6 +4031,8 @@ export default function ApplicationPage() {
         return <Step5TravellingCompanions formData={formData} updateFormData={updateFormData} />;
       case 6:
         return <Step6ContactDetails formData={formData} updateFormData={updateFormData} />;
+      case 7:
+        return <Step7AuthorisedRecipient formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
