@@ -892,6 +892,39 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [citizenshipCountrySelect, setCitizenshipCountrySelect] = useState("");
   const otherCitizenships = (formData.otherCitizenships as string[]) || [];
 
+  const [idCardDialogOpen, setIdCardDialogOpen] = useState(false);
+  const [idCardFamily, setIdCardFamily] = useState("");
+  const [idCardGiven, setIdCardGiven] = useState("");
+  const [idCardNumber, setIdCardNumber] = useState("");
+  const [idCardCountry, setIdCardCountry] = useState("");
+  const [idCardIssueDate, setIdCardIssueDate] = useState("");
+  const [idCardExpiryDate, setIdCardExpiryDate] = useState("");
+  const nationalIdCards = (formData.nationalIdCards as Array<{ familyName: string; givenNames: string; idNumber: string; country: string; issueDate: string; expiryDate: string }>) || [];
+
+  const addNationalIdCard = () => {
+    const updated = [...nationalIdCards, {
+      familyName: idCardFamily,
+      givenNames: idCardGiven,
+      idNumber: idCardNumber,
+      country: idCardCountry,
+      issueDate: idCardIssueDate,
+      expiryDate: idCardExpiryDate,
+    }];
+    updateFormData({ nationalIdCards: updated });
+    setIdCardFamily("");
+    setIdCardGiven("");
+    setIdCardNumber("");
+    setIdCardCountry("");
+    setIdCardIssueDate("");
+    setIdCardExpiryDate("");
+    setIdCardDialogOpen(false);
+  };
+
+  const removeNationalIdCard = (index: number) => {
+    const updated = nationalIdCards.filter((_, i) => i !== index);
+    updateFormData({ nationalIdCards: updated });
+  };
+
   const addCitizenship = () => {
     if (citizenshipCountrySelect && !otherCitizenships.includes(citizenshipCountrySelect)) {
       updateFormData({ otherCitizenships: [...otherCitizenships, citizenshipCountrySelect] });
@@ -1128,6 +1161,55 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="national-id-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasNationalIdCard === "yes" && (
+              <div className="mt-4 border rounded-md">
+                <div className="px-3 py-2 border-b">
+                  <span className="text-sm font-semibold text-primary">Add details</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left px-3 py-2 font-semibold">Family name</th>
+                        <th className="text-left px-3 py-2 font-semibold">Given names</th>
+                        <th className="text-left px-3 py-2 font-semibold">ID number</th>
+                        <th className="text-left px-3 py-2 font-semibold">Country</th>
+                        <th className="text-left px-3 py-2 font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {nationalIdCards.map((card, i) => (
+                        <tr key={i} className="border-b last:border-b-0" data-testid={`row-id-card-${i}`}>
+                          <td className="px-3 py-2">{card.familyName}</td>
+                          <td className="px-3 py-2">{card.givenNames}</td>
+                          <td className="px-3 py-2">{card.idNumber}</td>
+                          <td className="px-3 py-2">{card.country}</td>
+                          <td className="px-3 py-2">
+                            <Button variant="outline" size="sm" onClick={() => removeNationalIdCard(i)} data-testid={`button-remove-id-card-${i}`}>
+                              Remove
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-3 py-2 border-t">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setIdCardFamily("");
+                    setIdCardGiven("");
+                    setIdCardNumber("");
+                    setIdCardCountry("");
+                    setIdCardIssueDate("");
+                    setIdCardExpiryDate("");
+                    setIdCardDialogOpen(true);
+                  }} data-testid="button-add-id-card">
+                    Add
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
@@ -1312,7 +1394,12 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                   </table>
                 </div>
                 <div className="px-3 py-2 border-t">
-                  <Button variant="outline" size="sm" onClick={() => setOtherNameDialogOpen(true)} data-testid="button-add-other-name">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setOtherNameFamily("");
+                    setOtherNameGiven("");
+                    setOtherNameReason("");
+                    setOtherNameDialogOpen(true);
+                  }} data-testid="button-add-other-name">
                     Add
                   </Button>
                 </div>
@@ -1658,6 +1745,113 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
               Cancel
             </Button>
             <Button onClick={addOtherName} data-testid="button-confirm-other-name">
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={idCardDialogOpen} onOpenChange={setIdCardDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-primary">National identity card</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Enter details exactly as shown on the national identity card.
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground inline ml-1" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Details must match the national identity card exactly</p>
+              </TooltipContent>
+            </Tooltip>
+          </p>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Family name</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={idCardFamily}
+                  onChange={(e) => setIdCardFamily(e.target.value)}
+                  data-testid="input-id-card-family-name"
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enter the family name as shown on the identity card</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Given names</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={idCardGiven}
+                  onChange={(e) => setIdCardGiven(e.target.value)}
+                  data-testid="input-id-card-given-names"
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enter all given names as shown on the identity card</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Identification number</Label>
+              <Input
+                value={idCardNumber}
+                onChange={(e) => setIdCardNumber(e.target.value)}
+                data-testid="input-id-card-number"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+              <Select value={idCardCountry} onValueChange={setIdCardCountry}>
+                <SelectTrigger data-testid="select-id-card-country">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {COUNTRIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Note: If the National identity card does not have a Date of issue or a Date of expiry, do not enter a date. Leave the field/s blank.
+            </p>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Date of issue</Label>
+              <Input
+                type="date"
+                value={idCardIssueDate}
+                onChange={(e) => setIdCardIssueDate(e.target.value)}
+                data-testid="input-id-card-issue-date"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Date of expiry</Label>
+              <Input
+                type="date"
+                value={idCardExpiryDate}
+                onChange={(e) => setIdCardExpiryDate(e.target.value)}
+                data-testid="input-id-card-expiry-date"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between gap-2 sm:justify-between">
+            <Button variant="outline" onClick={() => setIdCardDialogOpen(false)} data-testid="button-cancel-id-card">
+              Cancel
+            </Button>
+            <Button onClick={addNationalIdCard} data-testid="button-confirm-id-card">
               Confirm
             </Button>
           </DialogFooter>
