@@ -877,7 +877,37 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
   );
 }
 
+const NAME_CHANGE_REASONS = [
+  "Marriage",
+  "Divorce",
+  "Change by deed poll",
+  "Adoption",
+  "Other",
+];
+
 function Step3Applicant({ formData, updateFormData }: StepProps) {
+  const [otherNameDialogOpen, setOtherNameDialogOpen] = useState(false);
+  const [otherNameFamily, setOtherNameFamily] = useState("");
+  const [otherNameGiven, setOtherNameGiven] = useState("");
+  const [otherNameReason, setOtherNameReason] = useState("");
+  const otherNames = (formData.otherNames as Array<{ familyName: string; givenNames: string; reason: string }>) || [];
+
+  const addOtherName = () => {
+    if (otherNameFamily || otherNameGiven) {
+      const updated = [...otherNames, { familyName: otherNameFamily, givenNames: otherNameGiven, reason: otherNameReason }];
+      updateFormData({ otherNames: updated });
+      setOtherNameFamily("");
+      setOtherNameGiven("");
+      setOtherNameReason("");
+      setOtherNameDialogOpen(false);
+    }
+  };
+
+  const removeOtherName = (index: number) => {
+    const updated = otherNames.filter((_, i) => i !== index);
+    updateFormData({ otherNames: updated });
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1225,6 +1255,57 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-names-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasOtherNames === "yes" && (
+              <div className="mt-4 border rounded-md">
+                <div className="px-3 py-2 border-b">
+                  <span className="text-sm font-semibold text-primary">Add details</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left px-3 py-2 font-semibold">Family name</th>
+                        <th className="text-left px-3 py-2 font-semibold">Given names</th>
+                        <th className="text-left px-3 py-2 font-semibold">Reason</th>
+                        <th className="text-left px-3 py-2 font-semibold">
+                          <span className="flex items-center gap-1">
+                            Actions
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Add or remove other names</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {otherNames.map((name, i) => (
+                        <tr key={i} className="border-b last:border-b-0" data-testid={`row-other-name-${i}`}>
+                          <td className="px-3 py-2">{name.familyName}</td>
+                          <td className="px-3 py-2">{name.givenNames}</td>
+                          <td className="px-3 py-2">{name.reason}</td>
+                          <td className="px-3 py-2">
+                            <Button variant="outline" size="sm" onClick={() => removeOtherName(i)} data-testid={`button-remove-other-name-${i}`}>
+                              Remove
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-3 py-2 border-t">
+                  <Button variant="outline" size="sm" onClick={() => setOtherNameDialogOpen(true)} data-testid="button-add-other-name">
+                    Add
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
@@ -1452,6 +1533,83 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={otherNameDialogOpen} onOpenChange={setOtherNameDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-primary">Other names / spellings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Family name</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={otherNameFamily}
+                  onChange={(e) => setOtherNameFamily(e.target.value)}
+                  data-testid="input-other-family-name"
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enter the family name (surname)</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Given names</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={otherNameGiven}
+                  onChange={(e) => setOtherNameGiven(e.target.value)}
+                  data-testid="input-other-given-names"
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Enter all given names</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Reason for name change</Label>
+              <div className="flex items-center gap-2">
+                <Select value={otherNameReason} onValueChange={setOtherNameReason}>
+                  <SelectTrigger data-testid="select-other-name-reason">
+                    <SelectValue placeholder="Select reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NAME_CHANGE_REASONS.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Select the reason for the name change</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between gap-2 sm:justify-between">
+            <Button variant="outline" onClick={() => setOtherNameDialogOpen(false)} data-testid="button-cancel-other-name">
+              Cancel
+            </Button>
+            <Button onClick={addOtherName} data-testid="button-confirm-other-name">
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
