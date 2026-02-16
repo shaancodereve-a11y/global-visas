@@ -4565,14 +4565,8 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
       <div className="space-y-4">
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-entry-form-title">Entry details</h2>
+            <p className="text-sm mb-4" data-testid="text-entry-form-title">Give details of the additional entry.</p>
             <div className="space-y-4">
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label className="text-sm">Reason</Label>
-                <div className="col-span-2">
-                  <Input value={entryReason} onChange={(e) => setEntryReason(e.target.value)} data-testid="input-entry-reason" />
-                </div>
-              </div>
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label className="text-sm">Date from</Label>
                 <div className="col-span-2">
@@ -4583,6 +4577,12 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                 <Label className="text-sm">Date to</Label>
                 <div className="col-span-2">
                   <Input type="date" value={entryDateTo} onChange={(e) => setEntryDateTo(e.target.value)} className="w-48" data-testid="input-entry-date-to" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-start gap-4">
+                <Label className="text-sm pt-2">Give reason</Label>
+                <div className="col-span-2">
+                  <Textarea value={entryReason} onChange={(e) => setEntryReason(e.target.value)} className="min-h-[100px]" data-testid="input-entry-reason" />
                 </div>
               </div>
             </div>
@@ -4812,9 +4812,9 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="bg-primary text-primary-foreground">
-                          <th className="text-left p-2 font-medium">Reason</th>
                           <th className="text-left p-2 font-medium">Date from</th>
                           <th className="text-left p-2 font-medium">Date to</th>
+                          <th className="text-left p-2 font-medium">Give reason</th>
                           <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete entry details</p></TooltipContent></Tooltip></th>
                         </tr>
                       </thead>
@@ -4825,9 +4825,9 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
                           <>
                             {entries.map((e, i) => (
                               <tr key={i} className="border-b">
-                                <td className="p-2" data-testid={`text-entry-reason-${i}`}>{e.reason}</td>
                                 <td className="p-2" data-testid={`text-entry-from-${i}`}>{formatDate(e.dateFrom)}</td>
                                 <td className="p-2" data-testid={`text-entry-to-${i}`}>{formatDate(e.dateTo)}</td>
+                                <td className="p-2" data-testid={`text-entry-reason-${i}`}>{e.reason}</td>
                                 <td className="p-2">
                                   <div className="flex gap-2">
                                     <Button variant="outline" size="sm" type="button" onClick={() => editEntry(i)} data-testid={`button-edit-entry-${i}`}>Edit</Button>
