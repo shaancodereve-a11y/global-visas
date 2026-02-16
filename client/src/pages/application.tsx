@@ -951,9 +951,10 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const addTravelDoc = () => {
     if (travelDocType) {
       const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard" || travelDocType === "PL056(M56)";
+      const hasAutoName = isAustralianDoc || travelDocType === "Passport" || travelDocType === "Titre de voyage";
       const updated = [...otherTravelDocs, {
         docType: travelDocType,
-        name: (isAustralianDoc || travelDocType === "Passport") ? autoName : "",
+        name: hasAutoName ? autoName : "",
         docNumber: travelDocType === "PL056(M56)" ? "PLO56" : travelDocNumber,
         country: isAustralianDoc ? "AUSTRALIA - AUS" : travelDocCountry,
         nationality: travelDocNationality,
@@ -2382,6 +2383,119 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </>
+            )}
+
+            {travelDocType === "Titre de voyage" && (
+              <>
+                <p className="text-sm text-muted-foreground">Enter details as shown on the document for travel.</p>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={autoName}
+                      readOnly
+                      className="bg-muted/50"
+                      data-testid="input-titre-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Name auto-populated from applicant details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Sex</Label>
+                  <div className="flex items-center gap-4">
+                    {["Female", "Male", "Other"].map((option) => (
+                      <label key={option} className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="travelDocSex"
+                          value={option}
+                          checked={travelDocSex === option}
+                          onChange={(e) => setTravelDocSex(e.target.value)}
+                          className="accent-primary"
+                          data-testid={`radio-titre-sex-${option.toLowerCase()}`}
+                        />
+                        <span className="text-sm">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of birth</Label>
+                  <Input
+                    type="date"
+                    value={travelDocDob}
+                    onChange={(e) => setTravelDocDob(e.target.value)}
+                    data-testid="input-titre-dob"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Document number</Label>
+                  <Input
+                    value={travelDocNumber}
+                    onChange={(e) => setTravelDocNumber(e.target.value)}
+                    data-testid="input-titre-doc-number"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <Select value={travelDocCountry} onValueChange={setTravelDocCountry}>
+                    <SelectTrigger data-testid="select-titre-country">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Nationality of document holder</Label>
+                  <Select value={travelDocNationality} onValueChange={setTravelDocNationality}>
+                    <SelectTrigger data-testid="select-titre-nationality">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of issue</Label>
+                  <Input
+                    type="date"
+                    value={travelDocIssueDate}
+                    onChange={(e) => setTravelDocIssueDate(e.target.value)}
+                    data-testid="input-titre-issue-date"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of expiry</Label>
+                  <Input
+                    type="date"
+                    value={travelDocExpiry}
+                    onChange={(e) => setTravelDocExpiry(e.target.value)}
+                    data-testid="input-titre-expiry"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Place of issue / issuing authority</Label>
+                  <Input
+                    value={travelDocPlaceOfIssue}
+                    onChange={(e) => setTravelDocPlaceOfIssue(e.target.value)}
+                    data-testid="input-titre-place-of-issue"
+                  />
                 </div>
               </>
             )}
