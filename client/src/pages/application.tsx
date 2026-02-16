@@ -346,12 +346,33 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
   const reasons = (formData.visitReasons as string[]) || [];
   const [selectedReason, setSelectedReason] = useState("");
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [streamWarningOpen, setStreamWarningOpen] = useState(false);
+  const [pendingReason, setPendingReason] = useState("");
 
   const addReason = () => {
     if (selectedReason && !reasons.includes(selectedReason)) {
+      if (visaStream === "tourist" && selectedReason === "Business") {
+        setPendingReason(selectedReason);
+        setStreamWarningOpen(true);
+        return;
+      }
       updateFormData({ visitReasons: [...reasons, selectedReason] });
       setSelectedReason("");
     }
+  };
+
+  const confirmWarningReason = () => {
+    if (pendingReason && !reasons.includes(pendingReason)) {
+      updateFormData({ visitReasons: [...reasons, pendingReason] });
+      setSelectedReason("");
+    }
+    setPendingReason("");
+    setStreamWarningOpen(false);
+  };
+
+  const cancelWarningReason = () => {
+    setPendingReason("");
+    setStreamWarningOpen(false);
   };
 
   const removeReason = (index: number) => {
@@ -827,6 +848,21 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
         formData={formData}
         updateFormData={updateFormData}
       />
+
+      <Dialog open={streamWarningOpen} onOpenChange={setStreamWarningOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-destructive">Warning!</DialogTitle>
+          </DialogHeader>
+          <div className="border rounded-md p-4 text-sm leading-relaxed">
+            The Tourist stream is intended for applicants whose primary travel purpose is tourism. If the primary purpose of the applicant's travel is to undertake business activities in Australia, the appropriate stream is the Business Visitor stream. Check the Stream and Reasons for visiting fields and correct if necessary. To continue with the selection click Confirm.
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-2">
+            <Button variant="outline" onClick={cancelWarningReason} data-testid="button-stream-warning-cancel">Cancel</Button>
+            <Button onClick={confirmWarningReason} data-testid="button-stream-warning-confirm">Confirm</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
