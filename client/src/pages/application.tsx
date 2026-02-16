@@ -942,7 +942,9 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [travelDocSex, setTravelDocSex] = useState("");
   const [travelDocExpiry, setTravelDocExpiry] = useState("");
   const [travelDocPlaceOfIssue, setTravelDocPlaceOfIssue] = useState("");
-  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string; sex?: string; expiry?: string; placeOfIssue?: string }>) || [];
+  const [travelDocCountry, setTravelDocCountry] = useState("");
+  const [travelDocIssueDate, setTravelDocIssueDate] = useState("");
+  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string; sex?: string; expiry?: string; placeOfIssue?: string; issueDate?: string }>) || [];
 
   const autoName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
 
@@ -951,14 +953,15 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
       const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard";
       const updated = [...otherTravelDocs, {
         docType: travelDocType,
-        name: isAustralianDoc ? autoName : "",
+        name: (isAustralianDoc || travelDocType === "Passport") ? autoName : "",
         docNumber: travelDocNumber,
-        country: isAustralianDoc ? "AUSTRALIA - AUS" : "",
+        country: isAustralianDoc ? "AUSTRALIA - AUS" : travelDocCountry,
         nationality: travelDocNationality,
         dob: travelDocDob,
         sex: travelDocSex,
         expiry: travelDocExpiry,
         placeOfIssue: travelDocPlaceOfIssue,
+        issueDate: travelDocIssueDate,
       }];
       updateFormData({ otherTravelDocs: updated });
       setTravelDocType("");
@@ -968,6 +971,8 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
       setTravelDocSex("");
       setTravelDocExpiry("");
       setTravelDocPlaceOfIssue("");
+      setTravelDocCountry("");
+      setTravelDocIssueDate("");
       setTravelDocDialogOpen(false);
     }
   };
@@ -1771,6 +1776,8 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       setTravelDocSex("");
                       setTravelDocExpiry("");
                       setTravelDocPlaceOfIssue("");
+                      setTravelDocCountry("");
+                      setTravelDocIssueDate("");
                       setTravelDocDialogOpen(true);
                     }} data-testid="button-add-travel-doc">
                       Add
@@ -2206,6 +2213,119 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     value={travelDocPlaceOfIssue}
                     onChange={(e) => setTravelDocPlaceOfIssue(e.target.value)}
                     data-testid="input-immicard-place-of-issue"
+                  />
+                </div>
+              </>
+            )}
+
+            {travelDocType === "Passport" && (
+              <>
+                <p className="text-sm text-muted-foreground">Enter details as shown on the passport.</p>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={autoName}
+                      readOnly
+                      className="bg-muted/50"
+                      data-testid="input-passport-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Name auto-populated from applicant details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Sex</Label>
+                  <div className="flex items-center gap-4">
+                    {["Female", "Male", "Other"].map((option) => (
+                      <label key={option} className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="travelDocSex"
+                          value={option}
+                          checked={travelDocSex === option}
+                          onChange={(e) => setTravelDocSex(e.target.value)}
+                          className="accent-primary"
+                          data-testid={`radio-passport-sex-${option.toLowerCase()}`}
+                        />
+                        <span className="text-sm">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of birth</Label>
+                  <Input
+                    type="date"
+                    value={travelDocDob}
+                    onChange={(e) => setTravelDocDob(e.target.value)}
+                    data-testid="input-passport-dob"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Passport number</Label>
+                  <Input
+                    value={travelDocNumber}
+                    onChange={(e) => setTravelDocNumber(e.target.value)}
+                    data-testid="input-passport-number"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <Select value={travelDocCountry} onValueChange={setTravelDocCountry}>
+                    <SelectTrigger data-testid="select-passport-country">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Nationality of passport holder</Label>
+                  <Select value={travelDocNationality} onValueChange={setTravelDocNationality}>
+                    <SelectTrigger data-testid="select-passport-nationality">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of issue</Label>
+                  <Input
+                    type="date"
+                    value={travelDocIssueDate}
+                    onChange={(e) => setTravelDocIssueDate(e.target.value)}
+                    data-testid="input-passport-issue-date"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of expiry</Label>
+                  <Input
+                    type="date"
+                    value={travelDocExpiry}
+                    onChange={(e) => setTravelDocExpiry(e.target.value)}
+                    data-testid="input-passport-expiry"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Place of issue / issuing authority</Label>
+                  <Input
+                    value={travelDocPlaceOfIssue}
+                    onChange={(e) => setTravelDocPlaceOfIssue(e.target.value)}
+                    data-testid="input-passport-place-of-issue"
                   />
                 </div>
               </>
