@@ -939,25 +939,35 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
   const [travelDocNationality, setTravelDocNationality] = useState("");
   const [travelDocDob, setTravelDocDob] = useState("");
   const [travelDocNumber, setTravelDocNumber] = useState("");
-  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string }>) || [];
+  const [travelDocSex, setTravelDocSex] = useState("");
+  const [travelDocExpiry, setTravelDocExpiry] = useState("");
+  const [travelDocPlaceOfIssue, setTravelDocPlaceOfIssue] = useState("");
+  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string; nationality: string; dob: string; sex?: string; expiry?: string; placeOfIssue?: string }>) || [];
 
   const autoName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
 
   const addTravelDoc = () => {
     if (travelDocType) {
+      const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard";
       const updated = [...otherTravelDocs, {
         docType: travelDocType,
-        name: travelDocType === "DFTTA" ? autoName : "",
+        name: isAustralianDoc ? autoName : "",
         docNumber: travelDocNumber,
-        country: travelDocType === "DFTTA" ? "AUSTRALIA - AUS" : "",
+        country: isAustralianDoc ? "AUSTRALIA - AUS" : "",
         nationality: travelDocNationality,
         dob: travelDocDob,
+        sex: travelDocSex,
+        expiry: travelDocExpiry,
+        placeOfIssue: travelDocPlaceOfIssue,
       }];
       updateFormData({ otherTravelDocs: updated });
       setTravelDocType("");
       setTravelDocNationality("");
       setTravelDocDob("");
       setTravelDocNumber("");
+      setTravelDocSex("");
+      setTravelDocExpiry("");
+      setTravelDocPlaceOfIssue("");
       setTravelDocDialogOpen(false);
     }
   };
@@ -1758,6 +1768,9 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       setTravelDocNationality("");
                       setTravelDocDob("");
                       setTravelDocNumber("");
+                      setTravelDocSex("");
+                      setTravelDocExpiry("");
+                      setTravelDocPlaceOfIssue("");
                       setTravelDocDialogOpen(true);
                     }} data-testid="button-add-travel-doc">
                       Add
@@ -2099,6 +2112,101 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </>
+            )}
+
+            {travelDocType === "Immicard" && (
+              <>
+                <p className="text-sm text-muted-foreground">Enter details as shown on the document for travel.</p>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={autoName}
+                      readOnly
+                      className="bg-muted/50"
+                      data-testid="input-immicard-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Name auto-populated from applicant details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Sex</Label>
+                  <div className="flex items-center gap-4">
+                    {["Female", "Male", "Other"].map((option) => (
+                      <label key={option} className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="travelDocSex"
+                          value={option}
+                          checked={travelDocSex === option}
+                          onChange={(e) => setTravelDocSex(e.target.value)}
+                          className="accent-primary"
+                          data-testid={`radio-immicard-sex-${option.toLowerCase()}`}
+                        />
+                        <span className="text-sm">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of birth</Label>
+                  <Input
+                    type="date"
+                    value={travelDocDob}
+                    onChange={(e) => setTravelDocDob(e.target.value)}
+                    data-testid="input-immicard-dob"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Document number</Label>
+                  <Input
+                    value={travelDocNumber}
+                    onChange={(e) => setTravelDocNumber(e.target.value)}
+                    data-testid="input-immicard-doc-number"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <p className="text-sm font-medium">AUSTRALIA - AUS</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Nationality of document holder</Label>
+                  <Select value={travelDocNationality} onValueChange={setTravelDocNationality}>
+                    <SelectTrigger data-testid="select-immicard-nationality">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of expiry</Label>
+                  <Input
+                    type="date"
+                    value={travelDocExpiry}
+                    onChange={(e) => setTravelDocExpiry(e.target.value)}
+                    data-testid="input-immicard-expiry"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Place of issue / issuing authority</Label>
+                  <Input
+                    value={travelDocPlaceOfIssue}
+                    onChange={(e) => setTravelDocPlaceOfIssue(e.target.value)}
+                    data-testid="input-immicard-place-of-issue"
+                  />
                 </div>
               </>
             )}
