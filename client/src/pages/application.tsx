@@ -950,11 +950,11 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
 
   const addTravelDoc = () => {
     if (travelDocType) {
-      const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard";
+      const isAustralianDoc = travelDocType === "DFTTA" || travelDocType === "Immicard" || travelDocType === "PL056(M56)";
       const updated = [...otherTravelDocs, {
         docType: travelDocType,
         name: (isAustralianDoc || travelDocType === "Passport") ? autoName : "",
-        docNumber: travelDocNumber,
+        docNumber: travelDocType === "PL056(M56)" ? "PLO56" : travelDocNumber,
         country: isAustralianDoc ? "AUSTRALIA - AUS" : travelDocCountry,
         nationality: travelDocNationality,
         dob: travelDocDob,
@@ -2327,6 +2327,61 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                     onChange={(e) => setTravelDocPlaceOfIssue(e.target.value)}
                     data-testid="input-passport-place-of-issue"
                   />
+                </div>
+              </>
+            )}
+
+            {travelDocType === "PL056(M56)" && (
+              <>
+                <p className="text-sm text-muted-foreground">Enter details as shown on the document for travel.</p>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={autoName}
+                      readOnly
+                      className="bg-muted/50"
+                      data-testid="input-plo56-name"
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Name auto-populated from applicant details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Date of birth</Label>
+                  <Input
+                    type="date"
+                    value={travelDocDob}
+                    onChange={(e) => setTravelDocDob(e.target.value)}
+                    data-testid="input-plo56-dob"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Document number</Label>
+                  <p className="text-sm font-medium">PLO56</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Country of issue</Label>
+                  <p className="text-sm font-medium">AUSTRALIA - AUS</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-1 block">Nationality of document holder</Label>
+                  <Select value={travelDocNationality} onValueChange={setTravelDocNationality}>
+                    <SelectTrigger data-testid="select-plo56-nationality">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </>
             )}
