@@ -4601,7 +4601,8 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
       <div className="space-y-4">
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-study-form-title">Study details</h2>
+            <h2 className="text-lg font-bold text-primary mb-1" data-testid="text-study-form-title">Student course details</h2>
+            <p className="text-sm mb-4">Give details of the course the applicant is undertaking.</p>
             <div className="space-y-4">
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label className="text-sm">Course name</Label>
