@@ -4204,6 +4204,287 @@ function Step7AuthorisedRecipient({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step8NonAccompanyingFamily({ formData, updateFormData }: StepProps) {
+  const RELATIONSHIP_OPTIONS = [
+    "Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
+    "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
+    "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
+    "Sister/Brother in law", "Spouse / De facto partner", "Step child",
+    "Step parent", "Step brother", "Step sister", "Uncle"
+  ];
+
+  const [memberFormOpen, setMemberFormOpen] = useState(false);
+  const [memberRelationship, setMemberRelationship] = useState("");
+  const [memberFamilyName, setMemberFamilyName] = useState("");
+  const [memberGivenNames, setMemberGivenNames] = useState("");
+  const [memberSex, setMemberSex] = useState("");
+  const [memberDob, setMemberDob] = useState("");
+  const [memberCountryOfBirth, setMemberCountryOfBirth] = useState("");
+  const [editingMemberIndex, setEditingMemberIndex] = useState<number | null>(null);
+
+  const members = (formData.nonAccompanyingMembers as Array<{
+    relationship: string; familyName: string; givenNames: string; sex: string; dob: string; countryOfBirth: string;
+  }>) || [];
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const resetForm = () => {
+    setMemberRelationship("");
+    setMemberFamilyName("");
+    setMemberGivenNames("");
+    setMemberSex("");
+    setMemberDob("");
+    setMemberCountryOfBirth("");
+    setEditingMemberIndex(null);
+    setMemberFormOpen(false);
+  };
+
+  const confirmMember = () => {
+    const entry = {
+      relationship: memberRelationship,
+      familyName: memberFamilyName,
+      givenNames: memberGivenNames,
+      sex: memberSex,
+      dob: memberDob,
+      countryOfBirth: memberCountryOfBirth,
+    };
+    if (editingMemberIndex !== null) {
+      const updated = [...members];
+      updated[editingMemberIndex] = entry;
+      updateFormData({ nonAccompanyingMembers: updated });
+    } else {
+      updateFormData({ nonAccompanyingMembers: [...members, entry] });
+    }
+    resetForm();
+  };
+
+  const editMember = (index: number) => {
+    const m = members[index];
+    setMemberRelationship(m.relationship);
+    setMemberFamilyName(m.familyName);
+    setMemberGivenNames(m.givenNames);
+    setMemberSex(m.sex);
+    setMemberDob(m.dob);
+    setMemberCountryOfBirth(m.countryOfBirth);
+    setEditingMemberIndex(index);
+    setMemberFormOpen(true);
+  };
+
+  const removeMember = (index: number) => {
+    const updated = members.filter((_, i) => i !== index);
+    updateFormData({ nonAccompanyingMembers: updated });
+  };
+
+  const hasNonAccompanyingMembers = formData.hasNonAccompanyingMembers as string;
+
+  if (memberFormOpen) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-member-form-title">Non-accompanying member of the family unit</h2>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Relationship to the applicant</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Select value={memberRelationship} onValueChange={setMemberRelationship}>
+                    <SelectTrigger data-testid="select-member-relationship">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RELATIONSHIP_OPTIONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>The relationship of this family member to the applicant</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Family name</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={memberFamilyName} onChange={(e) => setMemberFamilyName(e.target.value)} data-testid="input-member-family-name" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Family name as shown in passport or travel document</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Given names</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Input value={memberGivenNames} onChange={(e) => setMemberGivenNames(e.target.value)} data-testid="input-member-given-names" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Given names as shown in passport or travel document</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Sex</Label>
+                <div className="col-span-2">
+                  <RadioGroup value={memberSex} onValueChange={setMemberSex} className="flex items-center gap-6" data-testid="radio-member-sex">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="female" id="member-sex-female" />
+                      <Label htmlFor="member-sex-female" className="text-sm cursor-pointer">Female</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="male" id="member-sex-male" />
+                      <Label htmlFor="member-sex-male" className="text-sm cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="other" id="member-sex-other" />
+                      <Label htmlFor="member-sex-other" className="text-sm cursor-pointer">Other</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Date of birth</Label>
+                <div className="col-span-2">
+                  <Input type="date" value={memberDob} onChange={(e) => setMemberDob(e.target.value)} className="w-48" data-testid="input-member-dob" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Country of birth</Label>
+                <div className="col-span-2 flex items-center gap-2">
+                  <Select value={memberCountryOfBirth} onValueChange={setMemberCountryOfBirth}>
+                    <SelectTrigger data-testid="select-member-country-birth">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent><p>Country where this family member was born</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between mt-6 pt-4 border-t">
+              <Button variant="outline" size="sm" type="button" onClick={resetForm} data-testid="button-member-cancel">Cancel</Button>
+              <Button variant="outline" size="sm" type="button" onClick={confirmMember} data-testid="button-member-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-step8-title">Non-accompanying members of the family unit</h2>
+          <p className="text-sm mb-4">Does the applicant have any members of their family unit not travelling to Australia who are not Australian citizens or Australian permanent residents?</p>
+
+          <div className="flex justify-center mb-4">
+            <RadioGroup
+              value={hasNonAccompanyingMembers || ""}
+              onValueChange={(val) => updateFormData({ hasNonAccompanyingMembers: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-non-accompanying"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="non-acc-yes" data-testid="radio-non-acc-yes" />
+                <Label htmlFor="non-acc-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="non-acc-no" data-testid="radio-non-acc-no" />
+                <Label htmlFor="non-acc-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground ml-2" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs"><p>Indicate if the applicant has family members not travelling who are not Australian citizens or permanent residents</p></TooltipContent>
+            </Tooltip>
+          </div>
+
+          {hasNonAccompanyingMembers === "yes" && (
+            <div className="border rounded-md p-4">
+              <button type="button" className="text-sm text-primary underline mb-3 cursor-pointer" onClick={() => { resetForm(); setMemberFormOpen(true); }} data-testid="link-add-member">Add details</button>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Family name</th>
+                      <th className="text-left p-2 font-medium">Given names</th>
+                      <th className="text-left p-2 font-medium">Date of birth</th>
+                      <th className="text-left p-2 font-medium">Relationship</th>
+                      <th className="text-left p-2 font-medium">Actions <Tooltip><TooltipTrigger asChild><HelpCircle className="h-3 w-3 inline text-primary-foreground/70" /></TooltipTrigger><TooltipContent><p>Edit or delete family member entries</p></TooltipContent></Tooltip></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-2">
+                          <Button variant="outline" size="sm" type="button" onClick={() => { resetForm(); setMemberFormOpen(true); }} data-testid="button-add-member">Add</Button>
+                        </td>
+                      </tr>
+                    ) : (
+                      <>
+                        {members.map((m, i) => (
+                          <tr key={i} className="border-b">
+                            <td className="p-2" data-testid={`text-member-family-${i}`}>{m.familyName}</td>
+                            <td className="p-2" data-testid={`text-member-given-${i}`}>{m.givenNames}</td>
+                            <td className="p-2" data-testid={`text-member-dob-${i}`}>{formatDate(m.dob)}</td>
+                            <td className="p-2" data-testid={`text-member-relationship-${i}`}>{m.relationship}</td>
+                            <td className="p-2">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" type="button" onClick={() => editMember(i)} data-testid={`button-edit-member-${i}`}>Edit</Button>
+                                <Button variant="outline" size="sm" type="button" onClick={() => removeMember(i)} data-testid={`button-delete-member-${i}`}>Delete</Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td colSpan={5} className="p-2">
+                            <Button variant="outline" size="sm" type="button" onClick={() => { resetForm(); setMemberFormOpen(true); }} data-testid="button-add-more-member">Add</Button>
+                          </td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -4424,6 +4705,17 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 8) {
+      if (!formData.hasNonAccompanyingMembers) {
+        toast({
+          title: "Required field",
+          description: "Please indicate whether the applicant has non-accompanying family members.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -4485,6 +4777,8 @@ export default function ApplicationPage() {
         return <Step6ContactDetails formData={formData} updateFormData={updateFormData} />;
       case 7:
         return <Step7AuthorisedRecipient formData={formData} updateFormData={updateFormData} />;
+      case 8:
+        return <Step8NonAccompanyingFamily formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
