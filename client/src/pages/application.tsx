@@ -5204,6 +5204,41 @@ function Step9EntryToAustralia({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step11OverseasEmployment({ formData, updateFormData }: StepProps) {
+  const EMPLOYMENT_STATUS_OPTIONS = [
+    "Employed", "Self employed", "Unemployed", "Retired", "Student", "Other"
+  ];
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-step11-title">Visa applicant's current overseas employment</h2>
+
+          <h3 className="text-base font-bold text-primary mb-3">Current employment details</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Employment status</Label>
+              <div className="col-span-2">
+                <Select value={(formData.employmentStatus as string) || ""} onValueChange={(val) => updateFormData({ employmentStatus: val })}>
+                  <SelectTrigger data-testid="select-employment-status">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMPLOYMENT_STATUS_OPTIONS.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -5254,7 +5289,8 @@ export default function ApplicationPage() {
 
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
-      const newStep = currentStep - 1;
+      let newStep = currentStep - 1;
+      if (newStep === 10) newStep = 9;
       saveMutation.mutate(
         { formData, currentStep: newStep },
         {
@@ -5450,7 +5486,15 @@ export default function ApplicationPage() {
       }
     }
 
-    const newStep = currentStep + 1;
+    if (currentStep === 11) {
+      if (!formData.employmentStatus) {
+        toast({ title: "Required field", description: "Please select an employment status.", variant: "destructive" });
+        return;
+      }
+    }
+
+    let newStep = currentStep + 1;
+    if (newStep === 10) newStep = 11;
     saveMutation.mutate(
       { formData, currentStep: newStep },
       {
@@ -5515,6 +5559,8 @@ export default function ApplicationPage() {
         return <Step8NonAccompanyingFamily formData={formData} updateFormData={updateFormData} />;
       case 9:
         return <Step9EntryToAustralia formData={formData} updateFormData={updateFormData} />;
+      case 11:
+        return <Step11OverseasEmployment formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
