@@ -5565,7 +5565,7 @@ export default function ApplicationPage() {
         return (
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">Step {currentStep} is coming soon. Share the screenshot for this step to continue building.</p>
+              <p className="text-muted-foreground">Development is in process</p>
             </CardContent>
           </Card>
         );
