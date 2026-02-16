@@ -86,9 +86,27 @@ export class DatabaseStorage implements IStorage {
     await db.update(otpCodes).set({ used: true }).where(eq(otpCodes.id, id));
   }
 
+  private generateTRN(): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let trn = "";
+    for (let i = 0; i < 10; i++) {
+      trn += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return trn;
+  }
+
   async createApplication(data: InsertApplication): Promise<Application> {
-    const [app] = await db.insert(applications).values(data).returning();
-    return app;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        const trn = this.generateTRN();
+        const [app] = await db.insert(applications).values({ ...data, trn }).returning();
+        return app;
+      } catch (err: any) {
+        if (err?.code === "23505" && attempt < 4) continue;
+        throw err;
+      }
+    }
+    throw new Error("Failed to generate unique TRN after multiple attempts");
   }
 
   async getApplication(id: string): Promise<Application | undefined> {

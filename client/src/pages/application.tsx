@@ -2983,6 +2983,126 @@ function Step3Applicant({ formData, updateFormData, validationErrors = {} }: Ste
   );
 }
 
+function Step4CriticalDataConfirmation({ formData, updateFormData }: StepProps) {
+  const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const familyName = (formData.familyName as string) || "";
+  const givenNames = (formData.givenNames as string) || "";
+  const sex = (formData.sex as string) || "";
+  const dateOfBirth = formatDate(formData.dateOfBirth as string);
+  const birthCountry = (formData.birthCountry as string) || "";
+  const passportNumber = (formData.passportNumber as string) || "";
+  const countryOfPassport = (formData.countryOfPassport as string) || "";
+
+  const displaySex = sex ? sex.charAt(0).toUpperCase() + sex.slice(1) : "";
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-step4-title">Critical data confirmation</h2>
+          <p className="text-sm mb-3">All information provided is important to the processing of this application.</p>
+          <p className="text-sm mb-3">If the information included on this page is incorrect, it may lead to denial of permission to board an aircraft to Australia, even if a visa has been granted.</p>
+          <p className="text-sm font-bold mb-6">Confirm that the following information is correct and that it is in the correct fields.</p>
+
+          <div className="space-y-3 mb-6">
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Family name</span>
+              <div className="col-span-2 flex items-center gap-2">
+                <span className="text-sm font-medium" data-testid="text-confirm-family-name">{familyName}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Family name as it appears on the passport</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Given names</span>
+              <div className="col-span-2 flex items-center gap-2">
+                <span className="text-sm font-medium" data-testid="text-confirm-given-names">{givenNames}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Given names as they appear on the passport</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Sex</span>
+              <span className="text-sm font-medium col-span-2" data-testid="text-confirm-sex">{displaySex}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Date of birth</span>
+              <span className="text-sm font-medium col-span-2" data-testid="text-confirm-dob">{dateOfBirth}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Country of birth</span>
+              <div className="col-span-2 flex items-center gap-2">
+                <span className="text-sm font-medium" data-testid="text-confirm-birth-country">{birthCountry}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent><p>Country of birth as provided</p></TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Passport number</span>
+              <span className="text-sm font-medium col-span-2" data-testid="text-confirm-passport">{passportNumber}</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <span className="text-sm">Country of passport</span>
+              <span className="text-sm font-medium col-span-2" data-testid="text-confirm-passport-country">{countryOfPassport}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-6">
+            <p className="text-sm">Is the above information correct?</p>
+            <RadioGroup
+              value={(formData.criticalDataConfirmed as string) || ""}
+              onValueChange={(val) => updateFormData({ criticalDataConfirmed: val })}
+              className="flex items-center gap-6"
+              data-testid="radio-critical-data-confirm"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="critical-yes" data-testid="radio-critical-yes" />
+                <Label htmlFor="critical-yes" className="text-sm cursor-pointer">Yes</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="critical-no" data-testid="radio-critical-no" />
+                <Label htmlFor="critical-no" className="text-sm cursor-pointer">No</Label>
+              </div>
+            </RadioGroup>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>If the information is not correct, select No to go back and make corrections.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -3167,6 +3287,25 @@ export default function ApplicationPage() {
       setValidationErrors({});
     }
 
+    if (currentStep === 4) {
+      if (!formData.criticalDataConfirmed) {
+        toast({
+          title: "Confirmation required",
+          description: "Please confirm whether the above information is correct.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (formData.criticalDataConfirmed === "no") {
+        setCurrentStep(3);
+        toast({
+          title: "Please correct your information",
+          description: "Going back to Step 3 so you can update your details.",
+        });
+        return;
+      }
+    }
+
     const newStep = currentStep + 1;
     saveMutation.mutate(
       { formData, currentStep: newStep },
@@ -3220,6 +3359,8 @@ export default function ApplicationPage() {
         return <Step2ApplicationContext formData={formData} updateFormData={updateFormData} />;
       case 3:
         return <Step3Applicant formData={formData} updateFormData={updateFormData} validationErrors={validationErrors} />;
+      case 4:
+        return <Step4CriticalDataConfirmation formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
@@ -3245,7 +3386,7 @@ export default function ApplicationPage() {
       <div className="max-w-3xl mx-auto w-full px-4 py-6 flex-1">
         {application.id && (
           <p className="text-xs text-muted-foreground mb-2" data-testid="text-trn">
-            Transaction Reference Number (TRN): {application.id.substring(0, 10).toUpperCase()}
+            Transaction Reference Number (TRN): {application.trn}
           </p>
         )}
         <div className="mb-6">

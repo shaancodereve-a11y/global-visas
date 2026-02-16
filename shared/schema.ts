@@ -26,6 +26,7 @@ export const otpCodes = pgTable("otp_codes", {
 
 export const applications = pgTable("applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  trn: text("trn").notNull().unique(),
   userId: varchar("user_id").notNull().references(() => users.id),
   status: text("status").notNull().default("draft"),
   currentStep: integer("current_step").notNull().default(1),
@@ -77,6 +78,7 @@ export const otpSchema = z.object({
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
+  trn: true,
   createdAt: true,
   updatedAt: true,
   submittedAt: true,
