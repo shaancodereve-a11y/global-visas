@@ -925,6 +925,33 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
     updateFormData({ nationalIdCards: updated });
   };
 
+  const TRAVEL_DOC_TYPES = [
+    "DFTTA",
+    "Immicard",
+    "Passport",
+    "PL056(M56)",
+    "Titre de voyage",
+    "Other travel document",
+  ];
+
+  const [travelDocDialogOpen, setTravelDocDialogOpen] = useState(false);
+  const [travelDocType, setTravelDocType] = useState("");
+  const otherTravelDocs = (formData.otherTravelDocs as Array<{ docType: string; name: string; docNumber: string; country: string }>) || [];
+
+  const addTravelDoc = () => {
+    if (travelDocType) {
+      const updated = [...otherTravelDocs, { docType: travelDocType, name: "", docNumber: "", country: "" }];
+      updateFormData({ otherTravelDocs: updated });
+      setTravelDocType("");
+      setTravelDocDialogOpen(false);
+    }
+  };
+
+  const removeTravelDoc = (index: number) => {
+    const updated = otherTravelDocs.filter((_, i) => i !== index);
+    updateFormData({ otherTravelDocs: updated });
+  };
+
   const addCitizenship = () => {
     if (citizenshipCountrySelect && !otherCitizenships.includes(citizenshipCountrySelect)) {
       updateFormData({ otherCitizenships: [...otherCitizenships, citizenshipCountrySelect] });
@@ -1632,6 +1659,95 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
                 <Label htmlFor="other-passports-no" className="text-sm cursor-pointer">No</Label>
               </div>
             </RadioGroup>
+
+            {formData.hasOtherPassports === "yes" && (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-sm">Does the applicant intend to travel on a United Nations Laissez-Passer?</p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>A United Nations Laissez-Passer is a travel document issued by the United Nations.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <RadioGroup
+                    value={(formData.travelOnUNLaissezPasser as string) || ""}
+                    onValueChange={(val) => updateFormData({ travelOnUNLaissezPasser: val })}
+                    className="flex items-center gap-6"
+                    data-testid="radio-un-laissez-passer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="un-laissez-yes" data-testid="radio-un-laissez-yes" />
+                      <Label htmlFor="un-laissez-yes" className="text-sm cursor-pointer">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="un-laissez-no" data-testid="radio-un-laissez-no" />
+                      <Label htmlFor="un-laissez-no" className="text-sm cursor-pointer">No</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Give details of any other non United Nations passports or documents for travel that might have been previously used to travel to Australia.
+                </p>
+
+                <div className="border rounded-md">
+                  <div className="px-3 py-2 border-b">
+                    <span className="text-sm font-semibold text-primary">Add details</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="text-left px-3 py-2 font-semibold">Name</th>
+                          <th className="text-left px-3 py-2 font-semibold">Passport / document number</th>
+                          <th className="text-left px-3 py-2 font-semibold">Country of issue</th>
+                          <th className="text-left px-3 py-2 font-semibold">
+                            <span className="flex items-center gap-1">
+                              Actions
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Add or remove travel documents</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {otherTravelDocs.map((doc, i) => (
+                          <tr key={i} className="border-b last:border-b-0" data-testid={`row-travel-doc-${i}`}>
+                            <td className="px-3 py-2">{doc.name || doc.docType}</td>
+                            <td className="px-3 py-2">{doc.docNumber}</td>
+                            <td className="px-3 py-2">{doc.country}</td>
+                            <td className="px-3 py-2">
+                              <Button variant="outline" size="sm" onClick={() => removeTravelDoc(i)} data-testid={`button-remove-travel-doc-${i}`}>
+                                Remove
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 border-t">
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setTravelDocType("");
+                      setTravelDocDialogOpen(true);
+                    }} data-testid="button-add-travel-doc">
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4">
@@ -1874,6 +1990,47 @@ function Step3Applicant({ formData, updateFormData }: StepProps) {
               Cancel
             </Button>
             <Button onClick={addNationalIdCard} data-testid="button-confirm-id-card">
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={travelDocDialogOpen} onOpenChange={setTravelDocDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-primary">Other passport or document for travel</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Type of document</Label>
+              <div className="flex items-center gap-2">
+                <Select value={travelDocType} onValueChange={setTravelDocType}>
+                  <SelectTrigger data-testid="select-travel-doc-type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TRAVEL_DOC_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Select the type of travel document</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between gap-2 sm:justify-between">
+            <Button variant="outline" onClick={() => setTravelDocDialogOpen(false)} data-testid="button-cancel-travel-doc">
+              Cancel
+            </Button>
+            <Button onClick={addTravelDoc} data-testid="button-confirm-travel-doc">
               Confirm
             </Button>
           </DialogFooter>
