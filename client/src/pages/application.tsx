@@ -5479,6 +5479,50 @@ function Step11OverseasEmployment({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
+  const fundingSource = (formData.fundingSource as string) || "";
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-bold text-primary mb-4" data-testid="text-step12-title">Financial support</h2>
+
+          <h3 className="text-base font-bold text-primary mb-3">Funding details</h3>
+          <p className="text-sm text-muted-foreground mb-3">Give details of how the applicant's stay in Australia will be funded</p>
+          <div className="space-y-2 ml-4 mb-4">
+            {["Self funded", "Supported by current overseas employer", "Supported by other organisation", "Supported by other person"].map((option) => (
+              <label key={option} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="fundingSource"
+                  value={option}
+                  checked={fundingSource === option}
+                  onChange={(e) => updateFormData({ fundingSource: e.target.value })}
+                  className="h-4 w-4"
+                  data-testid={`radio-funding-${option.toLowerCase().replace(/\s+/g, "-")}`}
+                />
+                <span className="text-sm">{option}</span>
+              </label>
+            ))}
+          </div>
+
+          {fundingSource === "Self funded" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-start gap-4">
+                <Label className="text-sm pt-2">What funds will the applicant have available to support their stay in Australia?</Label>
+                <div className="col-span-2">
+                  <Textarea value={(formData.selfFundedDetails as string) || ""} onChange={(e) => updateFormData({ selfFundedDetails: e.target.value })} rows={5} data-testid="textarea-self-funded-details" />
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -5733,6 +5777,13 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 12) {
+      if (!formData.fundingSource) {
+        toast({ title: "Required field", description: "Please select how the applicant's stay will be funded.", variant: "destructive" });
+        return;
+      }
+    }
+
     let newStep = currentStep + 1;
     if (newStep === 10) newStep = 11;
     saveMutation.mutate(
@@ -5801,6 +5852,8 @@ export default function ApplicationPage() {
         return <Step9EntryToAustralia formData={formData} updateFormData={updateFormData} />;
       case 11:
         return <Step11OverseasEmployment formData={formData} updateFormData={updateFormData} />;
+      case 12:
+        return <Step12FinancialSupport formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
