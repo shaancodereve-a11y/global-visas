@@ -5748,6 +5748,107 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
 }
 
 function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
+  const [visitFormOpen, setVisitFormOpen] = useState(false);
+  const [visitCountry, setVisitCountry] = useState("");
+  const [visitDateFrom, setVisitDateFrom] = useState("");
+  const [visitDateTo, setVisitDateTo] = useState("");
+  const [editingVisitIndex, setEditingVisitIndex] = useState<number | null>(null);
+
+  const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
+  const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
+  const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
+  const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
+
+  const handleAddVisit = () => {
+    setVisitCountry("");
+    setVisitDateFrom("");
+    setVisitDateTo("");
+    setEditingVisitIndex(null);
+    setVisitFormOpen(true);
+  };
+
+  const handleConfirmVisit = () => {
+    const entry = { name: nameDisplay, country: visitCountry, dateFrom: visitDateFrom, dateTo: visitDateTo };
+    if (editingVisitIndex !== null) {
+      const updated = [...visits];
+      updated[editingVisitIndex] = entry;
+      updateFormData({ healthVisitedCountries: updated });
+    } else {
+      updateFormData({ healthVisitedCountries: [...visits, entry] });
+    }
+    setVisitFormOpen(false);
+  };
+
+  const handleEditVisit = (index: number) => {
+    const v = visits[index];
+    setVisitCountry(v.country);
+    setVisitDateFrom(v.dateFrom);
+    setVisitDateTo(v.dateTo);
+    setEditingVisitIndex(index);
+    setVisitFormOpen(true);
+  };
+
+  const handleDeleteVisit = (index: number) => {
+    updateFormData({ healthVisitedCountries: visits.filter((_, i) => i !== index) });
+  };
+
+  if (visitFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Visits to other countries</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details of all applicants that have in the last 5 years visited, or lived, outside their country of passport for more than 3 consecutive months. Do not include time spent in Australia.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-visit-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Country</Label>
+              <div className="col-span-2">
+                <Select value={visitCountry} onValueChange={setVisitCountry}>
+                  <SelectTrigger data-testid="select-visit-country">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date from</Label>
+              <div className="col-span-2">
+                <Input type="date" value={visitDateFrom} onChange={(e) => setVisitDateFrom(e.target.value)} data-testid="input-visit-date-from" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date to</Label>
+              <div className="col-span-2">
+                <Input type="date" value={visitDateTo} onChange={(e) => setVisitDateTo(e.target.value)} data-testid="input-visit-date-to" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setVisitFormOpen(false)} data-testid="button-visit-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmVisit} data-testid="button-visit-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-bold text-primary" data-testid="text-step16-title">Health declarations</h2>
@@ -5765,6 +5866,42 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthVisitedOutside as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Country visited</th>
+                      <th className="text-left p-2 font-medium">Date from</th>
+                      <th className="text-left p-2 font-medium">Date to</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visits.map((v, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{v.name}</td>
+                        <td className="p-2">{v.country}</td>
+                        <td className="p-2">{v.dateFrom}</td>
+                        <td className="p-2">{v.dateTo}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditVisit(i)} data-testid={`button-edit-visit-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteVisit(i)} data-testid={`button-delete-visit-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddVisit} data-testid="button-add-visit">Add</Button>
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm">Does any applicant intend to enter a hospital or a health care facility (including nursing homes) while in Australia?</p>
