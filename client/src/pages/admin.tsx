@@ -66,6 +66,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<"applications" | "admins">("applications");
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdminForm, setNewAdminForm] = useState({ email: "", firstName: "", lastName: "", password: "" });
+  const [deleteApp, setDeleteApp] = useState<ApplicationWithUser | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useQuery<Stats>({
     queryKey: ["/api/admin/stats"],
@@ -126,6 +127,21 @@ export default function AdminPage() {
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message || "Could not remove admin.", variant: "destructive" });
+    },
+  });
+
+  const deleteAppMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/admin/applications/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      setDeleteApp(null);
+      toast({ title: "Application deleted", description: "The application and all its documents have been permanently deleted." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Could not delete application.", variant: "destructive" });
     },
   });
 
@@ -315,6 +331,9 @@ export default function AdminPage() {
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => openStatusDialog(app)} data-testid={`button-manage-${app.id}`}>
                                   Manage
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => setDeleteApp(app)} data-testid={`button-delete-${app.id}`}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -516,6 +535,45 @@ export default function AdminPage() {
             <Button onClick={handleAddAdmin} disabled={addAdminMutation.isPending} data-testid="button-confirm-add-admin">
               {addAdminMutation.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
               Add Admin
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteApp} onOpenChange={(open) => !open && setDeleteApp(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Application</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to permanently delete this application? This action cannot be undone.
+            </p>
+            {deleteApp && (
+              <Card>
+                <CardContent className="p-3 space-y-1">
+                  <p className="text-sm font-medium">
+                    {deleteApp.user ? `${deleteApp.user.firstName} ${deleteApp.user.lastName}` : "Unknown"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{deleteApp.user?.email || "N/A"}</p>
+                  <p className="text-xs text-muted-foreground">Status: {deleteApp.status} | Step: {deleteApp.currentStep}/22</p>
+                </CardContent>
+              </Card>
+            )}
+            <p className="text-sm text-destructive font-medium">
+              All associated documents will also be deleted.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteApp(null)} data-testid="button-cancel-delete">Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteApp && deleteAppMutation.mutate(deleteApp.id)}
+              disabled={deleteAppMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteAppMutation.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Delete Application
             </Button>
           </DialogFooter>
         </DialogContent>

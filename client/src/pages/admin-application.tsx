@@ -70,6 +70,7 @@ export default function AdminApplicationPage() {
   const [newStatus, setNewStatus] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<"details" | "documents">("documents");
 
   const { data: application, isLoading } = useQuery<ApplicationWithUser>({
@@ -111,6 +112,19 @@ export default function AdminApplicationPage() {
     },
     onError: () => {
       toast({ title: "Error", description: "Could not submit application.", variant: "destructive" });
+    },
+  });
+
+  const deleteAppMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/admin/applications/${params.id}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Application deleted", description: "The application and all documents have been permanently deleted." });
+      setLocation("/admin");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not delete application.", variant: "destructive" });
     },
   });
 
@@ -372,6 +386,14 @@ export default function AdminApplicationPage() {
               >
                 <Eye className="h-4 w-4 mr-1" /> View Form Data
               </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+                data-testid="button-delete-application"
+              >
+                <Trash2 className="h-4 w-4 mr-1" /> Delete
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -499,6 +521,41 @@ export default function AdminApplicationPage() {
             >
               {statusMutation.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
               Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Application</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to permanently delete this application? This action cannot be undone.
+            </p>
+            <Card>
+              <CardContent className="p-3 space-y-1">
+                <p className="text-sm font-medium">{applicantName}</p>
+                <p className="text-xs text-muted-foreground">{applicantEmail}</p>
+                <p className="text-xs text-muted-foreground">TRN: {application.trn} | Status: {application.status}</p>
+              </CardContent>
+            </Card>
+            <p className="text-sm text-destructive font-medium">
+              All associated documents will also be deleted.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} data-testid="button-cancel-delete-detail">Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteAppMutation.mutate()}
+              disabled={deleteAppMutation.isPending}
+              data-testid="button-confirm-delete-detail"
+            >
+              {deleteAppMutation.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              Delete Application
             </Button>
           </DialogFooter>
         </DialogContent>

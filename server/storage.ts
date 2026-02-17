@@ -30,6 +30,8 @@ export interface IStorage {
   getAllApplications(): Promise<(Application & { user?: User })[]>;
   updateApplication(id: string, data: Partial<Application>): Promise<Application | undefined>;
 
+  deleteApplication(id: string): Promise<void>;
+
   createDocument(data: InsertDocument): Promise<Document>;
   getDocumentsByApplication(applicationId: string): Promise<Document[]>;
   deleteDocument(id: string): Promise<void>;
@@ -138,6 +140,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(applications.id, id))
       .returning();
     return app;
+  }
+
+  async deleteApplication(id: string): Promise<void> {
+    await db.delete(documents).where(eq(documents.applicationId, id));
+    await db.delete(applications).where(eq(applications.id, id));
   }
 
   async createDocument(data: InsertDocument): Promise<Document> {

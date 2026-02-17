@@ -469,6 +469,20 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/admin/applications/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const app = await storage.getApplication(req.params.id as string);
+      if (!app) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      await storage.deleteApplication(req.params.id as string);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Admin delete application error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/admin/export", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const apps = await storage.getAllApplications();
