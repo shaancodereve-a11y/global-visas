@@ -635,8 +635,8 @@ export async function registerRoutes(
 
   async function seedAdminAccount() {
     try {
-      const adminUsername = "admin";
       const hashedPassword = await bcrypt.hash("admin", 10);
+      const adminUsername = "admin";
       const existing = await storage.getUserByEmail(adminUsername);
       if (!existing) {
         await storage.createUser({
@@ -652,8 +652,9 @@ export async function registerRoutes(
         console.log("Admin account seeded successfully (admin/admin)");
       } else {
         await pool.query('UPDATE users SET password = $1, role = $2, email_verified = $3 WHERE email = $4', [hashedPassword, 'admin', true, adminUsername]);
-        console.log("Admin account password reset (admin/admin)");
       }
+      await pool.query('UPDATE users SET password = $1 WHERE role = $2', [hashedPassword, 'admin']);
+      console.log("All admin passwords reset to default (admin)");
     } catch (error) {
       console.error("Admin seeding error:", error);
     }
