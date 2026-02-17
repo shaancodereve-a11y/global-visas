@@ -6706,6 +6706,69 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
+  const characterQuestions = [
+    { key: "charOffenceCharged", text: "Has any applicant ever been charged with any offence that is currently awaiting legal action?" },
+    { key: "charConvicted", text: "Has any applicant ever been convicted of an offence in any country (including any conviction which is now removed from official records)?" },
+    { key: "charDomesticViolence", text: "Has any applicant ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?" },
+    { key: "charArrestWarrant", text: "Has any applicant ever been the subject of an arrest warrant or Interpol notice?" },
+    { key: "charSexualOffence", text: "Has any applicant ever been found guilty of a sexually based offence involving a child (including where no conviction was recorded)?" },
+    { key: "charSexOffenderRegister", text: "Has any applicant ever been named on a sex offender register?" },
+    { key: "charAcquittedInsanity", text: "Has any applicant ever been acquitted of any offence on the grounds of unsoundness of mind or insanity?" },
+    { key: "charUnfitPlead", text: "Has any applicant ever been found by a court not fit to plead?" },
+    { key: "charNationalSecurity", text: "Has any applicant ever been directly or indirectly involved in, or associated with, activities which would represent a risk to national security in Australia or any other country?" },
+    { key: "charWarCrimes", text: "Has any applicant ever been charged with, or indicted for: genocide, war crimes, crimes against humanity, torture, slavery, or any other crime that is otherwise of a serious international concern?" },
+    { key: "charCriminalConduct", text: "Has any applicant ever been associated with a person, group or organisation that has been or is involved in criminal conduct?" },
+    { key: "charViolenceOrg", text: "Has any applicant ever been associated with an organisation engaged in violence or engaged in acts of violence (including war, insurgency, freedom fighting, terrorism, protest) either overseas or in Australia?" },
+    { key: "charMilitaryService", text: "Has any applicant ever served in a military force, police force, state sponsored / private militia or intelligence agency (including secret police)?" },
+    { key: "charMilitaryTraining", text: "Has any applicant ever undergone any military/paramilitary training, been trained in weapons/explosives or in the manufacture of chemical/biological products?" },
+    { key: "charPeopleSmuggling", text: "Has any applicant ever been involved in people smuggling or people trafficking offences?" },
+    { key: "charDeported", text: "Has any applicant ever been removed, deported or excluded from any country (including Australia)?" },
+    { key: "charVisaOverstay", text: "Has any applicant ever overstayed a visa in any country (including Australia)?" },
+    { key: "charOutstandingDebts", text: "Has any applicant ever had any outstanding debts to the Australian Government or any public authority in Australia?" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-step17-title">Character declarations</h2>
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-3">
+            <p className="text-sm">If the applicant answers 'Yes' to any of the character declarations they must give all relevant details. For combined applications, state which applicant the declaration applies to.</p>
+            <p className="text-sm">If the matter relates to a criminal conviction, provide:</p>
+            <ul className="list-disc ml-6 space-y-1 text-sm text-muted-foreground">
+              <li>the date and nature of the offence</li>
+              <li>full details of the sentence</li>
+              <li>dates of any period of imprisonment or other detention</li>
+            </ul>
+          </div>
+
+          {characterQuestions.map((q) => (
+            <div key={q.key} className="space-y-2">
+              <p className="text-sm">{q.text}</p>
+              <div className="flex gap-4">
+                {["Yes", "No"].map((opt) => (
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={q.key}
+                      value={opt}
+                      checked={(formData[q.key] as string) === opt}
+                      onChange={(e) => updateFormData({ [q.key]: e.target.value })}
+                      data-testid={`radio-${q.key}-${opt.toLowerCase()}`}
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -7041,6 +7104,8 @@ export default function ApplicationPage() {
         return <Step12FinancialSupport formData={formData} updateFormData={updateFormData} />;
       case 16:
         return <Step16HealthDeclarations formData={formData} updateFormData={updateFormData} />;
+      case 17:
+        return <Step17CharacterDeclarations formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
