@@ -7594,6 +7594,85 @@ function Step18VisaHistory({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step20Declarations({ formData, updateFormData }: StepProps) {
+  const declarationQuestions = [
+    { key: "declReadUnderstood", text: "Have read and understood the information provided to them in this application." },
+    { key: "declCompleteCorrect", text: "Have provided complete and correct information in every detail on this form, and on any attachments to it." },
+    { key: "declFraudulentRefusal", text: "Understand that if any fraudulent documents or false or misleading information has been provided with this application, or if any of the applicants fail to satisfy the Minister of their identity, the application may be refused and the applicant(s), and any member of their family unit, may become unable to be granted a visa for a specified period of time." },
+    { key: "declFraudulentCancellation", text: "Understand that if documents are found to be fraudulent or information to be incorrect after the grant of a visa, the visa may subsequently be cancelled." },
+    { key: "declInformChanges", text: "Will inform the Department in writing immediately as they become aware of a change in circumstances (including change of address) or if there is any change relating to information they have provided in or with this application, while it is being considered." },
+    { key: "declPrivacyNotice", text: "Have read the information contained in the Privacy Notice (Form 1442)." },
+    { key: "declPersonalInfo", text: "Understand that the department may collect, use and disclose the applicant's personal information (including biometric information and other sensitive information) as outlined in the Privacy Notice (Form 1442)." },
+    { key: "declNoFurtherStay", text: "Understand that if a no further stay 8503 condition is imposed on this visa, it will limit the ability to remain in Australia beyond the authorised period of stay of the visa." },
+    { key: "declNoStudyTraining", text: "Agree not to undertake study or training for more than three months." },
+    { key: "declLeaveAustralia", text: "Agree to leave Australia on or before the expiry of the period of stay of the visa." },
+    { key: "declFingerprints", text: "Give consent to the collection of their fingerprints and facial image if required." },
+    { key: "declFingerprintsLawEnforcement", text: "Understand that, if required to provide their fingerprints and facial image, the applicant's fingerprints and facial image and biographical information held by the Department may be given to Australian law enforcement agencies to help identify the applicant and determine eligibility for grant of the visa being applied for, and for law enforcement purposes." },
+    { key: "declLawEnforcementConsent", text: "Give consent to Australian law enforcement agencies disclosing the applicant's biometric, biographical and criminal record information to the Department to help identify the applicant, to determine eligibility for grant of a visa and for law enforcement purposes." },
+    { key: "declNoWork", text: "Understand that the Visitor visa does not permit them to work in Australia." },
+    { key: "declBiometricConsent", text: "Give consent to the Department using the applicant's biometric, biographical and criminal record information obtained for the purposes of the Migration Act 1958 or the Citizenship Act 2007." },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-step20-title">Declarations</h2>
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-2">
+            <p className="font-bold text-sm">Warning:</p>
+            <p className="text-sm">Giving false or misleading information is a serious offence.</p>
+          </div>
+
+          <p className="text-sm font-medium">The applicants declare that they:</p>
+
+          {declarationQuestions.map((q) => (
+            <div key={q.key} className="space-y-2">
+              <p className="text-sm">{q.text}</p>
+              <div className="flex gap-4">
+                {["Yes", "No"].map((opt) => (
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={q.key}
+                      value={opt}
+                      checked={(formData[q.key] as string) === opt}
+                      onChange={(e) => updateFormData({ [q.key]: e.target.value })}
+                      data-testid={`radio-${q.key}-${opt.toLowerCase()}`}
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="pt-4 border-t space-y-4">
+            <p className="text-sm font-medium">As an applicant:</p>
+            <div className="space-y-2">
+              <p className="text-sm">I understand that if my visa ceases to be in effect and I do not hold another visa to remain in Australia at that time, I will be an unlawful non-citizen under the Migration Act 1958. As such, I will be expected to depart from Australia, and be subject to removal under the Migration Act 1958.</p>
+              <div className="flex gap-4">
+                {["Yes", "No"].map((opt) => (
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="declUnlawfulNonCitizen"
+                      value={opt}
+                      checked={(formData.declUnlawfulNonCitizen as string) === opt}
+                      onChange={(e) => updateFormData({ declUnlawfulNonCitizen: e.target.value })}
+                      data-testid={`radio-declUnlawfulNonCitizen-${opt.toLowerCase()}`}
+                    />
+                    <span className="text-sm">{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -7645,6 +7724,7 @@ export default function ApplicationPage() {
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
       let newStep = currentStep - 1;
+      if (newStep === 19) newStep = 18;
       if (newStep >= 13 && newStep <= 15) newStep = 12;
       if (newStep === 10) newStep = 9;
       saveMutation.mutate(
@@ -7859,6 +7939,7 @@ export default function ApplicationPage() {
     let newStep = currentStep + 1;
     if (newStep === 10) newStep = 11;
     if (newStep >= 13 && newStep <= 15) newStep = 16;
+    if (newStep === 19) newStep = 20;
     saveMutation.mutate(
       { formData, currentStep: newStep },
       {
@@ -7933,6 +8014,8 @@ export default function ApplicationPage() {
         return <Step17CharacterDeclarations formData={formData} updateFormData={updateFormData} />;
       case 18:
         return <Step18VisaHistory formData={formData} updateFormData={updateFormData} />;
+      case 20:
+        return <Step20Declarations formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
