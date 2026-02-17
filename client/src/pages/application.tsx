@@ -5754,7 +5754,13 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const [visitDateTo, setVisitDateTo] = useState("");
   const [editingVisitIndex, setEditingVisitIndex] = useState<number | null>(null);
 
+  const [hospitalFormOpen, setHospitalFormOpen] = useState(false);
+  const [hospitalReason, setHospitalReason] = useState("");
+  const [hospitalDetails, setHospitalDetails] = useState("");
+  const [editingHospitalIndex, setEditingHospitalIndex] = useState<number | null>(null);
+
   const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
+  const hospitalEntries = (formData.healthHospitalEntries as Array<{ name: string; reason: string; details: string }>) || [];
   const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
   const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
   const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
@@ -5791,6 +5797,90 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteVisit = (index: number) => {
     updateFormData({ healthVisitedCountries: visits.filter((_, i) => i !== index) });
   };
+
+  const handleAddHospital = () => {
+    setHospitalReason("");
+    setHospitalDetails("");
+    setEditingHospitalIndex(null);
+    setHospitalFormOpen(true);
+  };
+
+  const handleConfirmHospital = () => {
+    const entry = { name: nameDisplay, reason: hospitalReason, details: hospitalDetails };
+    if (editingHospitalIndex !== null) {
+      const updated = [...hospitalEntries];
+      updated[editingHospitalIndex] = entry;
+      updateFormData({ healthHospitalEntries: updated });
+    } else {
+      updateFormData({ healthHospitalEntries: [...hospitalEntries, entry] });
+    }
+    setHospitalFormOpen(false);
+  };
+
+  const handleEditHospital = (index: number) => {
+    const h = hospitalEntries[index];
+    setHospitalReason(h.reason);
+    setHospitalDetails(h.details);
+    setEditingHospitalIndex(index);
+    setHospitalFormOpen(true);
+  };
+
+  const handleDeleteHospital = (index: number) => {
+    updateFormData({ healthHospitalEntries: hospitalEntries.filter((_, i) => i !== index) });
+  };
+
+  if (hospitalFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Intention to enter hospitals or health care facilities</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details of all applicants that intend to enter a hospital or a health care facility (including nursing homes) while in Australia.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-hospital-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Reason</Label>
+              <div className="col-span-2">
+                <Select value={hospitalReason} onValueChange={setHospitalReason}>
+                  <SelectTrigger data-testid="select-hospital-reason">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Patient">Patient</SelectItem>
+                    <SelectItem value="Visitor">Visitor</SelectItem>
+                    <SelectItem value="Worker">Worker</SelectItem>
+                    <SelectItem value="Student">Student</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={hospitalDetails} onChange={(e) => setHospitalDetails(e.target.value)} rows={4} data-testid="textarea-hospital-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setHospitalFormOpen(false)} data-testid="button-hospital-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmHospital} data-testid="button-hospital-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (visitFormOpen) {
     return (
@@ -5914,6 +6004,38 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthEnterHospital as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Reason</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hospitalEntries.map((h, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{h.name}</td>
+                        <td className="p-2">{h.reason}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditHospital(i)} data-testid={`button-edit-hospital-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteHospital(i)} data-testid={`button-delete-hospital-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddHospital} data-testid="button-add-hospital">Add</Button>
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm">Does any applicant intend to work as, or study or train to be, a health care worker or work within a health care facility while in Australia?</p>
