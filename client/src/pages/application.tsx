@@ -6722,8 +6722,14 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const [convictionDescription, setConvictionDescription] = useState("");
   const [editingConvictionIndex, setEditingConvictionIndex] = useState<number | null>(null);
 
+  const [dvoFormOpen, setDvoFormOpen] = useState(false);
+  const [dvoDate, setDvoDate] = useState("");
+  const [dvoDetails, setDvoDetails] = useState("");
+  const [editingDvoIndex, setEditingDvoIndex] = useState<number | null>(null);
+
   const offenceEntries = (formData.charOffenceEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
   const convictionEntries = (formData.charConvictedEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
+  const dvoEntries = (formData.charDvoEntries as Array<{ name: string; date: string; details: string }>) || [];
 
   const handleAddOffence = () => {
     setOffenceType("");
@@ -6790,6 +6796,78 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteConviction = (index: number) => {
     updateFormData({ charConvictedEntries: convictionEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddDvo = () => {
+    setDvoDate("");
+    setDvoDetails("");
+    setEditingDvoIndex(null);
+    setDvoFormOpen(true);
+  };
+
+  const handleConfirmDvo = () => {
+    const entry = { name: nameDisplay, date: dvoDate, details: dvoDetails };
+    if (editingDvoIndex !== null) {
+      const updated = [...dvoEntries];
+      updated[editingDvoIndex] = entry;
+      updateFormData({ charDvoEntries: updated });
+    } else {
+      updateFormData({ charDvoEntries: [...dvoEntries, entry] });
+    }
+    setDvoFormOpen(false);
+  };
+
+  const handleEditDvo = (index: number) => {
+    const d = dvoEntries[index];
+    setDvoDate(d.date);
+    setDvoDetails(d.details);
+    setEditingDvoIndex(index);
+    setDvoFormOpen(true);
+  };
+
+  const handleDeleteDvo = (index: number) => {
+    updateFormData({ charDvoEntries: dvoEntries.filter((_, i) => i !== index) });
+  };
+
+  if (dvoFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Domestic violence order details</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-dvo-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date order raised</Label>
+              <div className="col-span-2">
+                <Input type="date" value={dvoDate} onChange={(e) => setDvoDate(e.target.value)} data-testid="input-dvo-date" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details of domestic violence order</Label>
+              <div className="col-span-2">
+                <Textarea value={dvoDetails} onChange={(e) => setDvoDetails(e.target.value)} rows={4} data-testid="textarea-dvo-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setDvoFormOpen(false)} data-testid="button-dvo-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmDvo} data-testid="button-dvo-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (convictionFormOpen) {
     return (
@@ -6912,7 +6990,6 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   }
 
   const characterQuestions = [
-    { key: "charDomesticViolence", text: "Has any applicant ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?" },
     { key: "charArrestWarrant", text: "Has any applicant ever been the subject of an arrest warrant or Interpol notice?" },
     { key: "charSexualOffence", text: "Has any applicant ever been found guilty of a sexually based offence involving a child (including where no conviction was recorded)?" },
     { key: "charSexOffenderRegister", text: "Has any applicant ever been named on a sex offender register?" },
@@ -7034,6 +7111,50 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
                 </table>
               </div>
               <Button variant="outline" size="sm" onClick={handleAddConviction} data-testid="button-add-conviction">Add</Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="charDomesticViolence" value={opt} checked={(formData.charDomesticViolence as string) === opt} onChange={(e) => updateFormData({ charDomesticViolence: e.target.value })} data-testid={`radio-charDomesticViolence-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {(formData.charDomesticViolence as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Applicant</th>
+                      <th className="text-left p-2 font-medium">Date order raised</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dvoEntries.map((d, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{d.name}</td>
+                        <td className="p-2">{d.date}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditDvo(i)} data-testid={`button-edit-dvo-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteDvo(i)} data-testid={`button-delete-dvo-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddDvo} data-testid="button-add-dvo">Add</Button>
             </div>
           )}
 
