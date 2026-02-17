@@ -5778,12 +5778,17 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const [medicalCostDetails, setMedicalCostDetails] = useState("");
   const [editingMedicalCostIndex, setEditingMedicalCostIndex] = useState<number | null>(null);
 
+  const [ongoingCareFormOpen, setOngoingCareFormOpen] = useState(false);
+  const [ongoingCareDetails, setOngoingCareDetails] = useState("");
+  const [editingOngoingCareIndex, setEditingOngoingCareIndex] = useState<number | null>(null);
+
   const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
   const hospitalEntries = (formData.healthHospitalEntries as Array<{ name: string; reason: string; details: string }>) || [];
   const healthcareWorkEntries = (formData.healthWorkHealthcareEntries as Array<{ name: string; role: string; details: string }>) || [];
   const agedCareEntries = (formData.healthAgedCareEntries as Array<{ name: string; role: string; details: string }>) || [];
   const tbEntries = (formData.healthTbEntries as Array<{ name: string; details: string }>) || [];
   const medicalCostEntries = (formData.healthMedicalCostEntries as Array<{ name: string; condition: string; details: string }>) || [];
+  const ongoingCareEntries = (formData.healthOngoingCareEntries as Array<{ name: string; details: string }>) || [];
   const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
   const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
   const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
@@ -5973,6 +5978,71 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteMedicalCost = (index: number) => {
     updateFormData({ healthMedicalCostEntries: medicalCostEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddOngoingCare = () => {
+    setOngoingCareDetails("");
+    setEditingOngoingCareIndex(null);
+    setOngoingCareFormOpen(true);
+  };
+
+  const handleConfirmOngoingCare = () => {
+    const entry = { name: nameDisplay, details: ongoingCareDetails };
+    if (editingOngoingCareIndex !== null) {
+      const updated = [...ongoingCareEntries];
+      updated[editingOngoingCareIndex] = entry;
+      updateFormData({ healthOngoingCareEntries: updated });
+    } else {
+      updateFormData({ healthOngoingCareEntries: [...ongoingCareEntries, entry] });
+    }
+    setOngoingCareFormOpen(false);
+  };
+
+  const handleEditOngoingCare = (index: number) => {
+    const o = ongoingCareEntries[index];
+    setOngoingCareDetails(o.details);
+    setEditingOngoingCareIndex(index);
+    setOngoingCareFormOpen(true);
+  };
+
+  const handleDeleteOngoingCare = (index: number) => {
+    updateFormData({ healthOngoingCareEntries: ongoingCareEntries.filter((_, i) => i !== index) });
+  };
+
+  if (ongoingCareFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Require Health or Community Care</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details of all applicants that require health or community care.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-ongoing-care-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={ongoingCareDetails} onChange={(e) => setOngoingCareDetails(e.target.value)} rows={4} data-testid="textarea-ongoing-care-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setOngoingCareFormOpen(false)} data-testid="button-ongoing-care-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmOngoingCare} data-testid="button-ongoing-care-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (medicalCostFormOpen) {
     return (
@@ -6598,6 +6668,38 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthOngoingCare as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Details</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ongoingCareEntries.map((o, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{o.name}</td>
+                        <td className="p-2">{o.details}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditOngoingCare(i)} data-testid={`button-edit-ongoing-care-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteOngoingCare(i)} data-testid={`button-delete-ongoing-care-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddOngoingCare} data-testid="button-add-ongoing-care">Add</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
