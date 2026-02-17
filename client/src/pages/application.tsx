@@ -5209,6 +5209,20 @@ function Step11OverseasEmployment({ formData, updateFormData }: StepProps) {
     "Employed", "Self employed", "Unemployed", "Retired", "Student", "Other"
   ];
 
+  const OCCUPATION_GROUPING_OPTIONS = [
+    "Managers", "Professionals", "Technicians and Trades Workers",
+    "Community and Personal Service Workers", "Clerical and Administrative Workers",
+    "Sales Workers", "Machinery Operators and Drivers", "Labourers"
+  ];
+
+  const AUSTRALIAN_STATES = [
+    "Australian Capital Territory", "New South Wales", "Northern Territory",
+    "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia"
+  ];
+
+  const empStatus = (formData.employmentStatus as string) || "";
+  const orgCountry = (formData.empOrgCountry as string) || "";
+
   return (
     <div className="space-y-4">
       <Card>
@@ -5220,7 +5234,7 @@ function Step11OverseasEmployment({ formData, updateFormData }: StepProps) {
             <div className="grid grid-cols-3 items-center gap-4">
               <Label className="text-sm">Employment status</Label>
               <div className="col-span-2">
-                <Select value={(formData.employmentStatus as string) || ""} onValueChange={(val) => updateFormData({ employmentStatus: val })}>
+                <Select value={empStatus} onValueChange={(val) => updateFormData({ employmentStatus: val })}>
                   <SelectTrigger data-testid="select-employment-status">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
@@ -5232,7 +5246,233 @@ function Step11OverseasEmployment({ formData, updateFormData }: StepProps) {
                 </Select>
               </div>
             </div>
+
+            {(empStatus === "Employed" || empStatus === "Self employed") && (
+              <>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Occupation grouping</Label>
+                  <div className="col-span-2">
+                    <Select value={(formData.empOccupationGrouping as string) || ""} onValueChange={(val) => updateFormData({ empOccupationGrouping: val })}>
+                      <SelectTrigger data-testid="select-occupation-grouping">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {OCCUPATION_GROUPING_OPTIONS.map((o) => (
+                          <SelectItem key={o} value={o}>{o}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Organisation</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empOrganisation as string) || ""} onChange={(e) => updateFormData({ empOrganisation: e.target.value })} data-testid="input-organisation" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Start date with current employer</Label>
+                  <div className="col-span-2">
+                    <Input type="date" value={(formData.empStartDate as string) || ""} onChange={(e) => updateFormData({ empStartDate: e.target.value })} data-testid="input-emp-start-date" />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+
+          {(empStatus === "Employed" || empStatus === "Self employed") && (
+            <>
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Organisation address</h3>
+              <p className="text-sm text-muted-foreground mb-3">Note that a street address is required. A post office address cannot be accepted as an organisation address.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Country</Label>
+                  <div className="col-span-2">
+                    <Select value={orgCountry} onValueChange={(val) => updateFormData({ empOrgCountry: val })}>
+                      <SelectTrigger data-testid="select-org-country">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Address</Label>
+                  <div className="col-span-2 space-y-2">
+                    <Input value={(formData.empOrgAddress1 as string) || ""} onChange={(e) => updateFormData({ empOrgAddress1: e.target.value })} data-testid="input-org-address1" />
+                    <Input value={(formData.empOrgAddress2 as string) || ""} onChange={(e) => updateFormData({ empOrgAddress2: e.target.value })} data-testid="input-org-address2" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Suburb / Town</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empOrgSuburb as string) || ""} onChange={(e) => updateFormData({ empOrgSuburb: e.target.value })} data-testid="input-org-suburb" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">{orgCountry === "Australia" ? "State or Territory" : "State or Province"}</Label>
+                  <div className="col-span-2">
+                    {orgCountry === "Australia" ? (
+                      <Select value={(formData.empOrgState as string) || ""} onValueChange={(val) => updateFormData({ empOrgState: val })}>
+                        <SelectTrigger data-testid="select-org-state">
+                          <SelectValue placeholder="" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AUSTRALIAN_STATES.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input value={(formData.empOrgState as string) || ""} onChange={(e) => updateFormData({ empOrgState: e.target.value })} data-testid="input-org-state" />
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Postal code</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empOrgPostalCode as string) || ""} onChange={(e) => updateFormData({ empOrgPostalCode: e.target.value })} className="max-w-[200px]" data-testid="input-org-postal-code" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {empStatus === "Employed" && (
+            <>
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Contact person details</h3>
+              <p className="text-sm text-muted-foreground mb-3">Give details of the contact person within the organisation.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Family name</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empContactFamilyName as string) || ""} onChange={(e) => updateFormData({ empContactFamilyName: e.target.value })} data-testid="input-contact-family-name" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Given names</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empContactGivenNames as string) || ""} onChange={(e) => updateFormData({ empContactGivenNames: e.target.value })} data-testid="input-contact-given-names" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Position</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empContactPosition as string) || ""} onChange={(e) => updateFormData({ empContactPosition: e.target.value })} data-testid="input-contact-position" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">Enter numbers only with no spaces.</p>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Business phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empContactBusinessPhone as string) || ""} onChange={(e) => updateFormData({ empContactBusinessPhone: e.target.value })} data-testid="input-contact-business-phone" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Mobile / Cell phone</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empContactMobilePhone as string) || ""} onChange={(e) => updateFormData({ empContactMobilePhone: e.target.value })} data-testid="input-contact-mobile-phone" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground"><strong>Note:</strong> Provide a current phone number for the applicant's employer including country and area codes. The department may use the contact number provided to verify their employment.</p>
+              </div>
+
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Electronic communication</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Email address</Label>
+                  <div className="col-span-2">
+                    <Input type="email" value={(formData.empContactEmail as string) || ""} onChange={(e) => updateFormData({ empContactEmail: e.target.value })} data-testid="input-contact-email" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {empStatus === "Unemployed" && (
+            <>
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Unemployment</h3>
+              <p className="text-sm text-muted-foreground mb-3">Give details of the length of unemployment and the last employment position held.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Date from</Label>
+                  <div className="col-span-2">
+                    <Input type="date" value={(formData.empUnemploymentDateFrom as string) || ""} onChange={(e) => updateFormData({ empUnemploymentDateFrom: e.target.value })} data-testid="input-unemployment-date-from" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Last employment position</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empLastPosition as string) || ""} onChange={(e) => updateFormData({ empLastPosition: e.target.value })} data-testid="input-last-position" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {empStatus === "Retired" && (
+            <>
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Retirement</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Retirement date</Label>
+                  <div className="col-span-2">
+                    <Input type="date" value={(formData.empRetirementDate as string) || ""} onChange={(e) => updateFormData({ empRetirementDate: e.target.value })} data-testid="input-retirement-date" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {empStatus === "Student" && (
+            <>
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Student course details</h3>
+              <p className="text-sm text-muted-foreground mb-3">Give details of the course the applicant is undertaking.</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Course name</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empCourseName as string) || ""} onChange={(e) => updateFormData({ empCourseName: e.target.value })} data-testid="input-course-name" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Institution name</Label>
+                  <div className="col-span-2">
+                    <Input value={(formData.empInstitutionName as string) || ""} onChange={(e) => updateFormData({ empInstitutionName: e.target.value })} data-testid="input-institution-name" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Date from</Label>
+                  <div className="col-span-2">
+                    <Input type="date" value={(formData.empCourseDateFrom as string) || ""} onChange={(e) => updateFormData({ empCourseDateFrom: e.target.value })} data-testid="input-course-date-from" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <Label className="text-sm">Date to</Label>
+                  <div className="col-span-2">
+                    <Input type="date" value={(formData.empCourseDateTo as string) || ""} onChange={(e) => updateFormData({ empCourseDateTo: e.target.value })} data-testid="input-course-date-to" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {empStatus === "Other" && (
+            <>
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-3 items-start gap-4">
+                  <Label className="text-sm pt-2">Give details</Label>
+                  <div className="col-span-2">
+                    <Textarea value={(formData.empOtherDetails as string) || ""} onChange={(e) => updateFormData({ empOtherDetails: e.target.value })} rows={5} data-testid="textarea-other-details" />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
