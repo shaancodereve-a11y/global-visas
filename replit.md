@@ -4,8 +4,9 @@
 A secure multi-step visa application management system for Global Visas. Users can sign up with email/OTP verification, fill out a 20-step Visitor Visa (Subclass 600) application form, track their application status, and upload supporting documents. Admins can manage all applications, update statuses, and communicate with applicants.
 
 ## Current State
-- **Phase 1 Complete**: Authentication (signup/login/OTP), Step 1 of form (Terms & Conditions), Applicant Dashboard, Admin Dashboard
-- **Form Steps**: Only Step 1 is built. User will provide screenshots for Steps 2-20 incrementally.
+- **All 20 form steps complete** plus Step 21 (Review) and Step 22 (Attach Documents)
+- **Document uploads**: Per-category uploads (Required: Travel Document, National ID, Previous Travel; Recommended: Family Register, Tourism Evidence, Financial Evidence)
+- **Admin features**: View application details, upload documents on behalf of applicants, submit applications on behalf, update status with notes
 - **Email**: Nodemailer configured but SMTP credentials not yet provided. OTP codes are logged to server console for now.
 
 ## Brand
@@ -32,13 +33,14 @@ A secure multi-step visa application management system for Global Visas. Users c
 - `client/src/pages/login.tsx` - Login page with OTP verification
 - `client/src/pages/signup.tsx` - Signup page with email verification
 - `client/src/pages/dashboard.tsx` - Applicant dashboard (my applications)
-- `client/src/pages/application.tsx` - Form wizard (Step 1: Terms & Conditions)
+- `client/src/pages/application.tsx` - Form wizard (Steps 1-22 including Review and Attach Documents)
 - `client/src/pages/application-view.tsx` - View submitted application status
 - `client/src/pages/admin.tsx` - Admin dashboard (manage all applications)
+- `client/src/pages/admin-application.tsx` - Admin per-application detail view with document management
 
 ## Admin Credentials
-- Email: shaan.codereve@gmail.com
-- Password: admin123!@#
+- Username: admin (or email: shaan.codereve@gmail.com)
+- Password: admin
 - Seeded via `script/seed-admin.ts`
 
 ## Environment Variables Needed
@@ -50,7 +52,8 @@ A secure multi-step visa application management system for Global Visas. Users c
 - `SESSION_SECRET` - Session encryption secret (auto-generated fallback exists)
 
 ## Recent Changes
-- 2026-02-13: Initial build - full auth system, Step 1 form, dashboards, email system
+- 2026-02-17: Added Step 22 (Attach Documents) with per-category uploads, admin application detail page with document management, login supports username for admin
+- 2026-02-13: Initial build - full auth system, all 20 form steps, Step 21 Review, dashboards, email system
 
 ## User Preferences
 - Build step by step - user provides screenshots for each form step
