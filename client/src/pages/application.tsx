@@ -5517,6 +5517,33 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
               </div>
             </div>
           )}
+
+          {fundingSource === "Supported by current overseas employer" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Type of support</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.employerSupportType as string) || ""} onValueChange={(val) => updateFormData({ employerSupportType: val })}>
+                    <SelectTrigger data-testid="select-employer-support-type">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Financial">Financial</SelectItem>
+                      <SelectItem value="Accommodation">Accommodation</SelectItem>
+                      <SelectItem value="All costs">All costs</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-start gap-4">
+                <Label className="text-sm pt-2">What funds will the applicant have available to support their stay in Australia?</Label>
+                <div className="col-span-2">
+                  <Textarea value={(formData.employerFundedDetails as string) || ""} onChange={(e) => updateFormData({ employerFundedDetails: e.target.value })} rows={5} data-testid="textarea-employer-funded-details" />
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
