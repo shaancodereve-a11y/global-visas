@@ -5627,6 +5627,52 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
               </div>
             </div>
           )}
+
+          {fundingSource === "Supported by other person" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Relationship to the applicant</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.personRelationship as string) || ""} onValueChange={(val) => updateFormData({ personRelationship: val })}>
+                    <SelectTrigger data-testid="select-person-relationship">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
+                        "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
+                        "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
+                        "Sister/Brother in law", "Spouse / De facto partner", "Step child",
+                        "Step parent", "Step brother", "Step sister", "Uncle"].map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Type of support</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.personSupportType as string) || ""} onValueChange={(val) => updateFormData({ personSupportType: val })}>
+                    <SelectTrigger data-testid="select-person-support-type">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Financial">Financial</SelectItem>
+                      <SelectItem value="Accommodation">Accommodation</SelectItem>
+                      <SelectItem value="All costs">All costs</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-start gap-4">
+                <Label className="text-sm pt-2">What funds will the applicant have available to support their stay in Australia?</Label>
+                <div className="col-span-2">
+                  <Textarea value={(formData.personFundedDetails as string) || ""} onChange={(e) => updateFormData({ personFundedDetails: e.target.value })} rows={5} data-testid="textarea-person-funded-details" />
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
