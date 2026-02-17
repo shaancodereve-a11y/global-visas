@@ -5631,25 +5631,6 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
           {fundingSource === "Supported by other person" && (
             <div className="space-y-4">
               <div className="grid grid-cols-3 items-center gap-4">
-                <Label className="text-sm">Relationship to the applicant</Label>
-                <div className="col-span-2">
-                  <Select value={(formData.personRelationship as string) || ""} onValueChange={(val) => updateFormData({ personRelationship: val })}>
-                    <SelectTrigger data-testid="select-person-relationship">
-                      <SelectValue placeholder="" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
-                        "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
-                        "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
-                        "Sister/Brother in law", "Spouse / De facto partner", "Step child",
-                        "Step parent", "Step brother", "Step sister", "Uncle"].map((r) => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 items-center gap-4">
                 <Label className="text-sm">Type of support</Label>
                 <div className="col-span-2">
                   <Select value={(formData.personSupportType as string) || ""} onValueChange={(val) => updateFormData({ personSupportType: val })}>
@@ -5669,6 +5650,93 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
                 <Label className="text-sm pt-2">What funds will the applicant have available to support their stay in Australia?</Label>
                 <div className="col-span-2">
                   <Textarea value={(formData.personFundedDetails as string) || ""} onChange={(e) => updateFormData({ personFundedDetails: e.target.value })} rows={5} data-testid="textarea-person-funded-details" />
+                </div>
+              </div>
+
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Relationship to applicant</h3>
+              <p className="text-sm text-muted-foreground mb-3">Give details of the person that will provide support to the applicant.</p>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Relationship to the applicant</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.personRelationship as string) || ""} onValueChange={(val) => updateFormData({ personRelationship: val })}>
+                    <SelectTrigger data-testid="select-person-relationship">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["Aunt", "Brother", "Business associate", "Child", "Cousin", "Daughter",
+                        "Son in law", "Fiance/ fiancee", "Friend", "Grandchild", "Grandparent",
+                        "Mother/Father in law", "Nephew", "Niece", "Parent", "Sister",
+                        "Sister/Brother in law", "Spouse / De facto partner", "Step child",
+                        "Step parent", "Step brother", "Step sister", "Uncle"].map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Family name</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.personFamilyName as string) || ""} onChange={(e) => updateFormData({ personFamilyName: e.target.value })} data-testid="input-person-family-name" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Given names</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.personGivenNames as string) || ""} onChange={(e) => updateFormData({ personGivenNames: e.target.value })} data-testid="input-person-given-names" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Country</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.personCountry as string) || ""} onValueChange={(val) => updateFormData({ personCountry: val })}>
+                    <SelectTrigger data-testid="select-person-country">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Address</Label>
+                <div className="col-span-2 space-y-2">
+                  <Input value={(formData.personAddress1 as string) || ""} onChange={(e) => updateFormData({ personAddress1: e.target.value })} data-testid="input-person-address1" />
+                  <Input value={(formData.personAddress2 as string) || ""} onChange={(e) => updateFormData({ personAddress2: e.target.value })} data-testid="input-person-address2" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Suburb / Town</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.personSuburb as string) || ""} onChange={(e) => updateFormData({ personSuburb: e.target.value })} data-testid="input-person-suburb" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">{(formData.personCountry as string) === "Australia" ? "State or Territory" : "State or Province"}</Label>
+                <div className="col-span-2">
+                  {(formData.personCountry as string) === "Australia" ? (
+                    <Select value={(formData.personState as string) || ""} onValueChange={(val) => updateFormData({ personState: val })}>
+                      <SelectTrigger data-testid="select-person-state">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Australian Capital Territory", "New South Wales", "Northern Territory", "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia"].map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={(formData.personState as string) || ""} onChange={(e) => updateFormData({ personState: e.target.value })} data-testid="input-person-state" />
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Postal code</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.personPostalCode as string) || ""} onChange={(e) => updateFormData({ personPostalCode: e.target.value })} className="max-w-[200px]" data-testid="input-person-postal-code" />
                 </div>
               </div>
             </div>
