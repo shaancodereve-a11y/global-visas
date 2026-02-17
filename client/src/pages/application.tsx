@@ -6734,10 +6734,18 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const [militaryDetails, setMilitaryDetails] = useState("");
   const [editingMilitaryIndex, setEditingMilitaryIndex] = useState<number | null>(null);
 
+  const [trainingFormOpen, setTrainingFormOpen] = useState(false);
+  const [trainingCountry, setTrainingCountry] = useState("");
+  const [trainingDateFrom, setTrainingDateFrom] = useState("");
+  const [trainingDateTo, setTrainingDateTo] = useState("");
+  const [trainingDetails, setTrainingDetails] = useState("");
+  const [editingTrainingIndex, setEditingTrainingIndex] = useState<number | null>(null);
+
   const offenceEntries = (formData.charOffenceEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
   const convictionEntries = (formData.charConvictedEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
   const dvoEntries = (formData.charDvoEntries as Array<{ name: string; date: string; details: string }>) || [];
   const militaryEntries = (formData.charMilitaryEntries as Array<{ name: string; country: string; dateFrom: string; dateTo: string; details: string }>) || [];
+  const trainingEntries = (formData.charTrainingEntries as Array<{ name: string; country: string; dateFrom: string; dateTo: string; details: string }>) || [];
 
   const handleAddOffence = () => {
     setOffenceType("");
@@ -6870,6 +6878,104 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteMilitary = (index: number) => {
     updateFormData({ charMilitaryEntries: militaryEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddTraining = () => {
+    setTrainingCountry("");
+    setTrainingDateFrom("");
+    setTrainingDateTo("");
+    setTrainingDetails("");
+    setEditingTrainingIndex(null);
+    setTrainingFormOpen(true);
+  };
+
+  const handleConfirmTraining = () => {
+    const entry = { name: nameDisplay, country: trainingCountry, dateFrom: trainingDateFrom, dateTo: trainingDateTo, details: trainingDetails };
+    if (editingTrainingIndex !== null) {
+      const updated = [...trainingEntries];
+      updated[editingTrainingIndex] = entry;
+      updateFormData({ charTrainingEntries: updated });
+    } else {
+      updateFormData({ charTrainingEntries: [...trainingEntries, entry] });
+    }
+    setTrainingFormOpen(false);
+  };
+
+  const handleEditTraining = (index: number) => {
+    const t = trainingEntries[index];
+    setTrainingCountry(t.country);
+    setTrainingDateFrom(t.dateFrom);
+    setTrainingDateTo(t.dateTo);
+    setTrainingDetails(t.details);
+    setEditingTrainingIndex(index);
+    setTrainingFormOpen(true);
+  };
+
+  const handleDeleteTraining = (index: number) => {
+    updateFormData({ charTrainingEntries: trainingEntries.filter((_, i) => i !== index) });
+  };
+
+  if (trainingFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Details of military training</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details, including a description of any specialist training received.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-training-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Country of training</Label>
+              <div className="col-span-2">
+                <Select value={trainingCountry} onValueChange={setTrainingCountry}>
+                  <SelectTrigger data-testid="select-training-country">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date from</Label>
+              <div className="col-span-2">
+                <Input type="date" value={trainingDateFrom} onChange={(e) => setTrainingDateFrom(e.target.value)} data-testid="input-training-date-from" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date to</Label>
+              <div className="col-span-2">
+                <Input type="date" value={trainingDateTo} onChange={(e) => setTrainingDateTo(e.target.value)} data-testid="input-training-date-to" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={trainingDetails} onChange={(e) => setTrainingDetails(e.target.value)} rows={4} data-testid="textarea-training-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setTrainingFormOpen(false)} data-testid="button-training-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmTraining} data-testid="button-training-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (militaryFormOpen) {
     return (
@@ -7108,7 +7214,6 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   ];
 
   const remainingQuestions = [
-    { key: "charMilitaryTraining", text: "Has any applicant ever undergone any military/paramilitary training, been trained in weapons/explosives or in the manufacture of chemical/biological products?" },
     { key: "charPeopleSmuggling", text: "Has any applicant ever been involved in people smuggling or people trafficking offences?" },
     { key: "charDeported", text: "Has any applicant ever been removed, deported or excluded from any country (including Australia)?" },
     { key: "charVisaOverstay", text: "Has any applicant ever overstayed a visa in any country (including Australia)?" },
@@ -7346,6 +7451,54 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
                 </table>
               </div>
               <Button variant="outline" size="sm" onClick={handleAddMilitary} data-testid="button-add-military">Add</Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant ever undergone any military/paramilitary training, been trained in weapons/explosives or in the manufacture of chemical/biological products?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="charMilitaryTraining" value={opt} checked={(formData.charMilitaryTraining as string) === opt} onChange={(e) => updateFormData({ charMilitaryTraining: e.target.value })} data-testid={`radio-charMilitaryTraining-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {(formData.charMilitaryTraining as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Country of training</th>
+                      <th className="text-left p-2 font-medium">Date from</th>
+                      <th className="text-left p-2 font-medium">Date to</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trainingEntries.map((t, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{t.name}</td>
+                        <td className="p-2">{t.country}</td>
+                        <td className="p-2">{t.dateFrom}</td>
+                        <td className="p-2">{t.dateTo}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditTraining(i)} data-testid={`button-edit-training-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteTraining(i)} data-testid={`button-delete-training-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddTraining} data-testid="button-add-training">Add</Button>
             </div>
           )}
 
