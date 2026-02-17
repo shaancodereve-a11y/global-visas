@@ -11,6 +11,7 @@ import DashboardPage from "@/pages/dashboard";
 import ApplicationPage from "@/pages/application";
 import ApplicationViewPage from "@/pages/application-view";
 import AdminPage from "@/pages/admin";
+import AdminApplicationPage from "@/pages/admin-application";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
@@ -91,6 +92,9 @@ function Router() {
       </Route>
       <Route path="/application/:id/view">
         <ProtectedRoute component={ApplicationViewPage} />
+      </Route>
+      <Route path="/admin/application/:id">
+        <AdminRoute component={AdminApplicationPage} />
       </Route>
       <Route path="/admin">
         <AdminRoute component={AdminPage} />

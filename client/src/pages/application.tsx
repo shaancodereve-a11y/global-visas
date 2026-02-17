@@ -4,7 +4,7 @@ import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useLocation, useParams } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import type { Application } from "@shared/schema";
+import type { Application, Document } from "@shared/schema";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Printer, ArrowLeft, ArrowRight, Save, Loader2, Plus, X, HelpCircle, AlertCircle } from "lucide-react";
+import { Printer, ArrowLeft, ArrowRight, Save, Loader2, Plus, X, HelpCircle, AlertCircle, Upload, Trash2, FileText as FileIcon, ChevronDown, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import logoPath from "@assets/GLOBAL-VISA-logo_1771013259487.webp";
 
@@ -7673,6 +7674,231 @@ function Step20Declarations({ formData, updateFormData }: StepProps) {
   );
 }
 
+const DOCUMENT_CATEGORIES = {
+  required: [
+    { key: "travel_document", label: "Travel Document", helpText: "A certified copy of the bio-data page of the applicant's current passport" },
+    { key: "national_id", label: "National Identity Document (other than Passport)", helpText: "A certified copy of the applicant's national identity card or birth certificate" },
+    { key: "previous_travel", label: "Evidence of the applicant's previous travel", helpText: "Copies of previous visas or entry/exit stamps" },
+  ],
+  recommended: [
+    { key: "family_register", label: "Family register and composition form (if applicable)", helpText: "Documents showing family composition and relationships" },
+    { key: "tourism_evidence", label: "Evidence of planned tourism activities in Australia", helpText: "Hotel bookings, tour reservations, itinerary" },
+    { key: "financial_evidence", label: "Evidence of the financial status and funding for visit", helpText: "Bank statements, employment letter, sponsorship letter" },
+  ],
+};
+
+function StepAttachDocuments({ formData, applicationId }: StepProps & { applicationId: string }) {
+  const { toast } = useToast();
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [uploadingCategory, setUploadingCategory] = useState<string | null>(null);
+
+  const { data: documents = [], isLoading: docsLoading } = useQuery<Document[]>({
+    queryKey: [`/api/documents/${applicationId}`],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!applicationId,
+  });
+
+  const toggleCategory = (key: string) => {
+    setExpandedCategories((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const getDocsForCategory = (categoryKey: string) => {
+    return documents.filter((d) => d.category === categoryKey);
+  };
+
+  const handleFileUpload = async (categoryKey: string, file: File) => {
+    setUploadingCategory(categoryKey);
+    try {
+      const urlRes = await apiRequest("POST", "/api/uploads/request-url", {
+        name: file.name,
+        size: file.size,
+        contentType: file.type,
+      });
+      const { uploadURL, objectPath } = await urlRes.json();
+
+      const putRes = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!putRes.ok) throw new Error("Failed to upload file to storage");
+
+      await apiRequest("POST", "/api/documents", {
+        applicationId,
+        name: file.name,
+        category: categoryKey,
+        objectPath,
+        fileType: file.type,
+        fileSize: file.size,
+      });
+
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/${applicationId}`] });
+      toast({ title: "Uploaded", description: `${file.name} has been uploaded.` });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({ title: "Upload failed", description: "Could not upload the file. Please try again.", variant: "destructive" });
+    } finally {
+      setUploadingCategory(null);
+    }
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      await apiRequest("DELETE", `/api/documents/${docId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/documents/${applicationId}`] });
+      toast({ title: "Deleted", description: "Document has been removed." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not delete document.", variant: "destructive" });
+    },
+  });
+
+  const totalAttachments = documents.length;
+  const applicantName = `${(formData.familyName as string) || ""}, ${(formData.givenNames as string) || ""}`.trim().replace(/^,\s*/, "").replace(/,\s*$/, "") || "Applicant";
+  const dob = (formData.dateOfBirth as string) || "";
+
+  const renderCategory = (cat: { key: string; label: string; helpText: string }, type: "required" | "recommended") => {
+    const docs = getDocsForCategory(cat.key);
+    const isExpanded = expandedCategories[cat.key];
+    const isUploading = uploadingCategory === cat.key;
+
+    return (
+      <div key={cat.key} className="border rounded-md" data-testid={`doc-category-${cat.key}`}>
+        <button
+          type="button"
+          className="w-full flex items-center justify-between p-3 text-left hover-elevate"
+          onClick={() => toggleCategory(cat.key)}
+          data-testid={`button-toggle-${cat.key}`}
+        >
+          <div className="flex items-center gap-2">
+            <Plus className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-medium text-primary">{cat.label}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>{cat.helpText}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{docs.length} Received</span>
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </div>
+        </button>
+
+        {isExpanded && (
+          <div className="border-t p-3 space-y-3">
+            {docs.length > 0 && (
+              <div className="space-y-2">
+                {docs.map((doc) => (
+                  <div key={doc.id} className="flex items-center justify-between gap-2 p-2 bg-accent/30 rounded-md" data-testid={`doc-item-${doc.id}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileIcon className="h-4 w-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm truncate">{doc.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : ""}
+                          {doc.uploadedBy === "admin" && " (uploaded by admin)"}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMutation.mutate(doc.id)}
+                      disabled={deleteMutation.isPending}
+                      data-testid={`button-delete-doc-${doc.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <label className="flex-1">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(cat.key, file);
+                      e.target.value = "";
+                    }
+                  }}
+                  data-testid={`input-file-${cat.key}`}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  disabled={isUploading}
+                  onClick={(e) => {
+                    const input = (e.currentTarget as HTMLElement).parentElement?.querySelector("input[type=file]") as HTMLInputElement;
+                    input?.click();
+                  }}
+                  data-testid={`button-upload-${cat.key}`}
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-1" />
+                  )}
+                  {isUploading ? "Uploading..." : "Attach document"}
+                </Button>
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-attach-title">Attach documents</h2>
+      <div className="text-sm space-y-2 text-muted-foreground">
+        <p>Attach the documents listed below then click Next and submit the application.</p>
+        <p>If you choose to submit the application without attaching all required documents, you will need to provide a reason.</p>
+        <p>Applications submitted without all the required documents may take longer to process.</p>
+        <p>There are specific quality and formatting requirements when scanning documents.</p>
+      </div>
+
+      <Card>
+        <CardContent className="p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-primary">{applicantName}</span>
+            {dob && <span className="text-sm text-muted-foreground">({dob})</span>}
+          </div>
+          <p className="text-sm text-muted-foreground" data-testid="text-attachment-count">
+            {totalAttachments} attachment{totalAttachments !== 1 ? "s" : ""} received of <strong>60</strong> maximum.
+          </p>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-primary">Required</p>
+            <div className="space-y-2">
+              {DOCUMENT_CATEGORIES.required.map((cat) => renderCategory(cat, "required"))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-primary">Recommended</p>
+            <div className="space-y-2">
+              {DOCUMENT_CATEGORIES.recommended.map((cat) => renderCategory(cat, "recommended"))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function StepReview({ formData }: StepProps) {
   const field = (label: string, key: string) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -8095,6 +8321,21 @@ export default function ApplicationPage() {
     },
   });
 
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/applications/${params.id}/submit`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications", params.id] });
+      toast({ title: "Application submitted", description: "Your application has been submitted successfully." });
+      setLocation("/dashboard");
+    },
+    onError: () => {
+      toast({ title: "Submission failed", description: "Could not submit the application. Please try again.", variant: "destructive" });
+    },
+  });
+
   const updateFormData = useCallback((updates: FormData) => {
     setFormData((prev) => ({ ...prev, ...updates }));
     if (Object.keys(validationErrors).length > 0) {
@@ -8114,6 +8355,7 @@ export default function ApplicationPage() {
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
       let newStep = currentStep - 1;
+      if (newStep === 21) newStep = 21;
       if (newStep === 19) newStep = 18;
       if (newStep >= 13 && newStep <= 15) newStep = 12;
       if (newStep === 10) newStep = 9;
@@ -8340,6 +8582,18 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 22) {
+      saveMutation.mutate(
+        { formData, currentStep: 22 },
+        {
+          onSuccess: () => {
+            submitMutation.mutate();
+          },
+        }
+      );
+      return;
+    }
+
     let newStep = currentStep + 1;
     if (newStep === 10) newStep = 11;
     if (newStep >= 13 && newStep <= 15) newStep = 16;
@@ -8436,6 +8690,8 @@ export default function ApplicationPage() {
         return <Step20Declarations formData={formData} updateFormData={updateFormData} />;
       case 21:
         return <StepReview formData={formData} updateFormData={updateFormData} />;
+      case 22:
+        return <StepAttachDocuments formData={formData} updateFormData={updateFormData} applicationId={application!.id} />;
       default:
         return (
           <Card>
@@ -8493,9 +8749,9 @@ export default function ApplicationPage() {
               Go to my account
             </Button>
           </div>
-          <Button onClick={handleNext} disabled={saveMutation.isPending} data-testid="button-next">
-            {saveMutation.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-            Next <ArrowRight className="h-4 w-4 ml-1" />
+          <Button onClick={handleNext} disabled={saveMutation.isPending || submitMutation.isPending} data-testid="button-next">
+            {(saveMutation.isPending || submitMutation.isPending) && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+            {currentStep === 22 ? "Submit" : "Next"} <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
       </div>

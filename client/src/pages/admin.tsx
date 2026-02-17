@@ -309,9 +309,14 @@ export default function AdminPage() {
                               {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "-"}
                             </TableCell>
                             <TableCell>
-                              <Button variant="outline" size="sm" onClick={() => openStatusDialog(app)} data-testid={`button-manage-${app.id}`}>
-                                Manage
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <Button variant="outline" size="sm" onClick={() => setLocation(`/admin/application/${app.id}`)} data-testid={`button-view-${app.id}`}>
+                                  View
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => openStatusDialog(app)} data-testid={`button-manage-${app.id}`}>
+                                  Manage
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}

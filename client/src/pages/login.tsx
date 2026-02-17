@@ -13,7 +13,7 @@ import { Loader2, Mail, Lock } from "lucide-react";
 import logoPath from "@assets/GLOBAL-VISA-logo_1771013259487.webp";
 
 const loginFormSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
+  email: z.string().min(1, "Email or username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input {...field} type="email" placeholder="you@example.com" className="pl-10" data-testid="input-email" />
+                          <Input {...field} type="text" placeholder="you@example.com" className="pl-10" data-testid="input-email" />
                         </div>
                       </FormControl>
                       <FormMessage />

@@ -42,9 +42,11 @@ export const documents = pgTable("documents", {
   applicationId: varchar("application_id").notNull().references(() => applications.id),
   userId: varchar("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
+  category: text("category").notNull().default("other"),
   objectPath: text("object_path").notNull(),
   fileType: text("file_type"),
   fileSize: integer("file_size"),
+  uploadedBy: text("uploaded_by").default("applicant"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

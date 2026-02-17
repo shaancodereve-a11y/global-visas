@@ -105,21 +105,19 @@ export async function registerRoutes(
 
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
-      const parsed = loginSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({ error: parsed.error.errors[0].message });
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email/username and password are required" });
       }
-
-      const { email, password } = parsed.data;
 
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(401).json({ error: "Invalid email or password" });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
 
       req.session.userId = user.id;
@@ -439,6 +437,38 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/applications/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const app = await storage.getApplication(req.params.id as string);
+      if (!app) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      const applicant = await storage.getUser(app.userId);
+      res.json({ ...app, user: applicant || undefined });
+    } catch (error) {
+      console.error("Admin get application error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/applications/:id/submit", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const app = await storage.getApplication(req.params.id as string);
+      if (!app) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const updated = await storage.updateApplication(req.params.id as string, {
+        status: "submitted",
+        submittedAt: new Date(),
+      });
+      res.json(updated);
+    } catch (error) {
+      console.error("Admin submit application error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/admin/export", requireAdmin, async (_req: Request, res: Response) => {
     try {
       const apps = await storage.getAllApplications();
@@ -492,7 +522,7 @@ export async function registerRoutes(
 
   app.post("/api/documents", requireAuth, async (req: Request, res: Response) => {
     try {
-      const { applicationId, name, objectPath, fileType, fileSize } = req.body;
+      const { applicationId, name, objectPath, fileType, fileSize, category } = req.body;
       if (!applicationId || !name || !objectPath) {
         return res.status(400).json({ error: "applicationId, name, and objectPath are required" });
       }
@@ -505,13 +535,16 @@ export async function registerRoutes(
         return res.status(403).json({ error: "Forbidden" });
       }
 
+      const isAdmin = req.user!.role === "admin";
       const doc = await storage.createDocument({
         applicationId,
-        userId: req.user!.id,
+        userId: isAdmin ? app.userId : req.user!.id,
         name,
+        category: category || "other",
         objectPath,
         fileType: fileType || null,
         fileSize: fileSize || null,
+        uploadedBy: isAdmin ? "admin" : "applicant",
       });
       res.status(201).json(doc);
     } catch (error) {
@@ -550,21 +583,21 @@ export async function registerRoutes(
 
   async function seedAdminAccount() {
     try {
-      const adminEmail = "shaan.codereve@gmail.com";
+      const adminEmail = "admin";
       const existing = await storage.getUserByEmail(adminEmail);
       if (!existing) {
-        const hashedPassword = await bcrypt.hash("admin123!@#", 10);
+        const hashedPassword = await bcrypt.hash("admin", 10);
         await storage.createUser({
           email: adminEmail,
-          firstName: "Shaan",
-          lastName: "Admin",
+          firstName: "Admin",
+          lastName: "User",
           password: hashedPassword,
         });
         const admin = await storage.getUserByEmail(adminEmail);
         if (admin) {
-          await pool.query('UPDATE users SET role = $1 WHERE id = $2', ['admin', admin.id]);
+          await pool.query('UPDATE users SET role = $1, email_verified = $2 WHERE id = $3', ['admin', true, admin.id]);
         }
-        console.log("Admin account seeded successfully");
+        console.log("Admin account seeded successfully (admin/admin)");
       }
     } catch (error) {
       console.error("Admin seeding error:", error);
