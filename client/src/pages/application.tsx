@@ -5769,10 +5769,15 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const [agedCareDetails, setAgedCareDetails] = useState("");
   const [editingAgedCareIndex, setEditingAgedCareIndex] = useState<number | null>(null);
 
+  const [tbFormOpen, setTbFormOpen] = useState(false);
+  const [tbDetails, setTbDetails] = useState("");
+  const [editingTbIndex, setEditingTbIndex] = useState<number | null>(null);
+
   const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
   const hospitalEntries = (formData.healthHospitalEntries as Array<{ name: string; reason: string; details: string }>) || [];
   const healthcareWorkEntries = (formData.healthWorkHealthcareEntries as Array<{ name: string; role: string; details: string }>) || [];
   const agedCareEntries = (formData.healthAgedCareEntries as Array<{ name: string; role: string; details: string }>) || [];
+  const tbEntries = (formData.healthTbEntries as Array<{ name: string; details: string }>) || [];
   const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
   const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
   const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
@@ -5902,6 +5907,78 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteAgedCare = (index: number) => {
     updateFormData({ healthAgedCareEntries: agedCareEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddTb = () => {
+    setTbDetails("");
+    setEditingTbIndex(null);
+    setTbFormOpen(true);
+  };
+
+  const handleConfirmTb = () => {
+    const entry = { name: nameDisplay, details: tbDetails };
+    if (editingTbIndex !== null) {
+      const updated = [...tbEntries];
+      updated[editingTbIndex] = entry;
+      updateFormData({ healthTbEntries: updated });
+    } else {
+      updateFormData({ healthTbEntries: [...tbEntries, entry] });
+    }
+    setTbFormOpen(false);
+  };
+
+  const handleEditTb = (index: number) => {
+    const t = tbEntries[index];
+    setTbDetails(t.details);
+    setEditingTbIndex(index);
+    setTbFormOpen(true);
+  };
+
+  const handleDeleteTb = (index: number) => {
+    updateFormData({ healthTbEntries: tbEntries.filter((_, i) => i !== index) });
+  };
+
+  if (tbFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Contact with tuberculosis</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex gap-2">
+              <p className="text-sm text-muted-foreground whitespace-nowrap">Give details of all applicants that have:</p>
+              <ul className="list-disc ml-4 text-sm text-muted-foreground">
+                <li>ever had, or currently have, tuberculosis</li>
+                <li>been in close contact with a family member that has active tuberculosis</li>
+                <li>ever had a chest x-ray that showed an abnormality.</li>
+              </ul>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-tb-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={tbDetails} onChange={(e) => setTbDetails(e.target.value)} rows={4} data-testid="textarea-tb-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setTbFormOpen(false)} data-testid="button-tb-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmTb} data-testid="button-tb-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (agedCareFormOpen) {
     return (
@@ -6326,6 +6403,38 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthTuberculosis as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Details</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tbEntries.map((t, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{t.name}</td>
+                        <td className="p-2">{t.details}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditTb(i)} data-testid={`button-edit-tb-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteTb(i)} data-testid={`button-delete-tb-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddTb} data-testid="button-add-tb">Add</Button>
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm">During their proposed visit to Australia, does any applicant expect to incur medical costs, or require treatment or medical follow up for:</p>
