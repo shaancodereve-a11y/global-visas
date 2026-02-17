@@ -7213,11 +7213,11 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
     { key: "charViolenceOrg", detailsKey: "charViolenceOrgDetails", text: "Has any applicant ever been associated with an organisation engaged in violence or engaged in acts of violence (including war, insurgency, freedom fighting, terrorism, protest) either overseas or in Australia?" },
   ];
 
-  const remainingQuestions = [
-    { key: "charPeopleSmuggling", text: "Has any applicant ever been involved in people smuggling or people trafficking offences?" },
-    { key: "charDeported", text: "Has any applicant ever been removed, deported or excluded from any country (including Australia)?" },
-    { key: "charVisaOverstay", text: "Has any applicant ever overstayed a visa in any country (including Australia)?" },
-    { key: "charOutstandingDebts", text: "Has any applicant ever had any outstanding debts to the Australian Government or any public authority in Australia?" },
+  const remainingDetailsQuestions = [
+    { key: "charPeopleSmuggling", detailsKey: "charPeopleSmugglingDetails", text: "Has any applicant ever been involved in people smuggling or people trafficking offences?" },
+    { key: "charDeported", detailsKey: "charDeportedDetails", text: "Has any applicant ever been removed, deported or excluded from any country (including Australia)?" },
+    { key: "charVisaOverstay", detailsKey: "charVisaOverstayDetails", text: "Has any applicant ever overstayed a visa in any country (including Australia)?" },
+    { key: "charOutstandingDebts", detailsKey: "charOutstandingDebtsDetails", text: "Has any applicant ever had any outstanding debts to the Australian Government or any public authority in Australia?" },
   ];
 
   return (
@@ -7502,24 +7502,38 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
             </div>
           )}
 
-          {remainingQuestions.map((q) => (
-            <div key={q.key} className="space-y-2">
-              <p className="text-sm">{q.text}</p>
-              <div className="flex gap-4">
-                {["Yes", "No"].map((opt) => (
-                  <label key={opt} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name={q.key}
-                      value={opt}
-                      checked={(formData[q.key] as string) === opt}
-                      onChange={(e) => updateFormData({ [q.key]: e.target.value })}
-                      data-testid={`radio-${q.key}-${opt.toLowerCase()}`}
-                    />
-                    <span className="text-sm">{opt}</span>
-                  </label>
-                ))}
+          {remainingDetailsQuestions.map((q) => (
+            <div key={q.key}>
+              <div className="space-y-2">
+                <p className="text-sm">{q.text}</p>
+                <div className="flex gap-4">
+                  {["Yes", "No"].map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={q.key}
+                        value={opt}
+                        checked={(formData[q.key] as string) === opt}
+                        onChange={(e) => updateFormData({ [q.key]: e.target.value })}
+                        data-testid={`radio-${q.key}-${opt.toLowerCase()}`}
+                      />
+                      <span className="text-sm">{opt}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
+              {(formData[q.key] as string) === "Yes" && (
+                <div className="mt-3">
+                  <Label className="text-sm">Give details</Label>
+                  <Textarea
+                    value={(formData[q.detailsKey] as string) || ""}
+                    onChange={(e) => updateFormData({ [q.detailsKey]: e.target.value })}
+                    rows={4}
+                    className="mt-1"
+                    data-testid={`textarea-${q.key}-details`}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </CardContent>
