@@ -6707,8 +6707,111 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
 }
 
 function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
+  const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
+  const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
+
+  const [offenceFormOpen, setOffenceFormOpen] = useState(false);
+  const [offenceType, setOffenceType] = useState("");
+  const [offenceDate, setOffenceDate] = useState("");
+  const [offenceDescription, setOffenceDescription] = useState("");
+  const [editingOffenceIndex, setEditingOffenceIndex] = useState<number | null>(null);
+
+  const offenceEntries = (formData.charOffenceEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
+
+  const handleAddOffence = () => {
+    setOffenceType("");
+    setOffenceDate("");
+    setOffenceDescription("");
+    setEditingOffenceIndex(null);
+    setOffenceFormOpen(true);
+  };
+
+  const handleConfirmOffence = () => {
+    const entry = { name: nameDisplay, offenceType, date: offenceDate, description: offenceDescription };
+    if (editingOffenceIndex !== null) {
+      const updated = [...offenceEntries];
+      updated[editingOffenceIndex] = entry;
+      updateFormData({ charOffenceEntries: updated });
+    } else {
+      updateFormData({ charOffenceEntries: [...offenceEntries, entry] });
+    }
+    setOffenceFormOpen(false);
+  };
+
+  const handleEditOffence = (index: number) => {
+    const e = offenceEntries[index];
+    setOffenceType(e.offenceType);
+    setOffenceDate(e.date);
+    setOffenceDescription(e.description);
+    setEditingOffenceIndex(index);
+    setOffenceFormOpen(true);
+  };
+
+  const handleDeleteOffence = (index: number) => {
+    updateFormData({ charOffenceEntries: offenceEntries.filter((_, i) => i !== index) });
+  };
+
+  if (offenceFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Offence details</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-offence-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Offence type</Label>
+              <div className="col-span-2">
+                <Select value={offenceType} onValueChange={setOffenceType}>
+                  <SelectTrigger data-testid="select-offence-type">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Drink driving">Drink driving</SelectItem>
+                    <SelectItem value="Assault">Assault</SelectItem>
+                    <SelectItem value="Theft">Theft</SelectItem>
+                    <SelectItem value="Fraud">Fraud</SelectItem>
+                    <SelectItem value="Drug offences">Drug offences</SelectItem>
+                    <SelectItem value="Traffic offences">Traffic offences</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date of offence</Label>
+              <div className="col-span-2">
+                <Input type="date" value={offenceDate} onChange={(e) => setOffenceDate(e.target.value)} data-testid="input-offence-date" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Description of the offence</Label>
+              <div className="col-span-2">
+                <Textarea value={offenceDescription} onChange={(e) => setOffenceDescription(e.target.value)} rows={4} data-testid="textarea-offence-description" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setOffenceFormOpen(false)} data-testid="button-offence-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmOffence} data-testid="button-offence-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const characterQuestions = [
-    { key: "charOffenceCharged", text: "Has any applicant ever been charged with any offence that is currently awaiting legal action?" },
     { key: "charConvicted", text: "Has any applicant ever been convicted of an offence in any country (including any conviction which is now removed from official records)?" },
     { key: "charDomesticViolence", text: "Has any applicant ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?" },
     { key: "charArrestWarrant", text: "Has any applicant ever been the subject of an arrest warrant or Interpol notice?" },
@@ -6742,6 +6845,52 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
               <li>dates of any period of imprisonment or other detention</li>
             </ul>
           </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant ever been charged with any offence that is currently awaiting legal action?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="charOffenceCharged" value={opt} checked={(formData.charOffenceCharged as string) === opt} onChange={(e) => updateFormData({ charOffenceCharged: e.target.value })} data-testid={`radio-charOffenceCharged-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {(formData.charOffenceCharged as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Applicant</th>
+                      <th className="text-left p-2 font-medium">Offence type</th>
+                      <th className="text-left p-2 font-medium">Date</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {offenceEntries.map((e, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{e.name}</td>
+                        <td className="p-2">{e.offenceType}</td>
+                        <td className="p-2">{e.date}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditOffence(i)} data-testid={`button-edit-offence-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteOffence(i)} data-testid={`button-delete-offence-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddOffence} data-testid="button-add-offence">Add</Button>
+            </div>
+          )}
 
           {characterQuestions.map((q) => (
             <div key={q.key} className="space-y-2">
