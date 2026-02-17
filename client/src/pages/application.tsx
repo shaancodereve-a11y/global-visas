@@ -6716,7 +6716,14 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const [offenceDescription, setOffenceDescription] = useState("");
   const [editingOffenceIndex, setEditingOffenceIndex] = useState<number | null>(null);
 
+  const [convictionFormOpen, setConvictionFormOpen] = useState(false);
+  const [convictionType, setConvictionType] = useState("");
+  const [convictionDate, setConvictionDate] = useState("");
+  const [convictionDescription, setConvictionDescription] = useState("");
+  const [editingConvictionIndex, setEditingConvictionIndex] = useState<number | null>(null);
+
   const offenceEntries = (formData.charOffenceEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
+  const convictionEntries = (formData.charConvictedEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
 
   const handleAddOffence = () => {
     setOffenceType("");
@@ -6750,6 +6757,99 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteOffence = (index: number) => {
     updateFormData({ charOffenceEntries: offenceEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddConviction = () => {
+    setConvictionType("");
+    setConvictionDate("");
+    setConvictionDescription("");
+    setEditingConvictionIndex(null);
+    setConvictionFormOpen(true);
+  };
+
+  const handleConfirmConviction = () => {
+    const entry = { name: nameDisplay, offenceType: convictionType, date: convictionDate, description: convictionDescription };
+    if (editingConvictionIndex !== null) {
+      const updated = [...convictionEntries];
+      updated[editingConvictionIndex] = entry;
+      updateFormData({ charConvictedEntries: updated });
+    } else {
+      updateFormData({ charConvictedEntries: [...convictionEntries, entry] });
+    }
+    setConvictionFormOpen(false);
+  };
+
+  const handleEditConviction = (index: number) => {
+    const c = convictionEntries[index];
+    setConvictionType(c.offenceType);
+    setConvictionDate(c.date);
+    setConvictionDescription(c.description);
+    setEditingConvictionIndex(index);
+    setConvictionFormOpen(true);
+  };
+
+  const handleDeleteConviction = (index: number) => {
+    updateFormData({ charConvictedEntries: convictionEntries.filter((_, i) => i !== index) });
+  };
+
+  if (convictionFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Offence details</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-conviction-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Offence type</Label>
+              <div className="col-span-2">
+                <Select value={convictionType} onValueChange={setConvictionType}>
+                  <SelectTrigger data-testid="select-conviction-type">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Drink driving">Drink driving</SelectItem>
+                    <SelectItem value="Assault">Assault</SelectItem>
+                    <SelectItem value="Theft">Theft</SelectItem>
+                    <SelectItem value="Fraud">Fraud</SelectItem>
+                    <SelectItem value="Drug offences">Drug offences</SelectItem>
+                    <SelectItem value="Traffic offences">Traffic offences</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date of conviction</Label>
+              <div className="col-span-2">
+                <Input type="date" value={convictionDate} onChange={(e) => setConvictionDate(e.target.value)} data-testid="input-conviction-date" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Description of the conviction including any penalties imposed</Label>
+              <div className="col-span-2">
+                <Textarea value={convictionDescription} onChange={(e) => setConvictionDescription(e.target.value)} rows={4} data-testid="textarea-conviction-description" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setConvictionFormOpen(false)} data-testid="button-conviction-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmConviction} data-testid="button-conviction-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (offenceFormOpen) {
     return (
@@ -6812,7 +6912,6 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   }
 
   const characterQuestions = [
-    { key: "charConvicted", text: "Has any applicant ever been convicted of an offence in any country (including any conviction which is now removed from official records)?" },
     { key: "charDomesticViolence", text: "Has any applicant ever been the subject of a domestic violence or family violence order, or any other order, of a tribunal or court or other similar authority, for the personal protection of another person?" },
     { key: "charArrestWarrant", text: "Has any applicant ever been the subject of an arrest warrant or Interpol notice?" },
     { key: "charSexualOffence", text: "Has any applicant ever been found guilty of a sexually based offence involving a child (including where no conviction was recorded)?" },
@@ -6889,6 +6988,52 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
                 </table>
               </div>
               <Button variant="outline" size="sm" onClick={handleAddOffence} data-testid="button-add-offence">Add</Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant ever been convicted of an offence in any country (including any conviction which is now removed from official records)?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="charConvicted" value={opt} checked={(formData.charConvicted as string) === opt} onChange={(e) => updateFormData({ charConvicted: e.target.value })} data-testid={`radio-charConvicted-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {(formData.charConvicted as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Applicant</th>
+                      <th className="text-left p-2 font-medium">Offence type</th>
+                      <th className="text-left p-2 font-medium">Date</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {convictionEntries.map((c, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{c.name}</td>
+                        <td className="p-2">{c.offenceType}</td>
+                        <td className="p-2">{c.date}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditConviction(i)} data-testid={`button-edit-conviction-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteConviction(i)} data-testid={`button-delete-conviction-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddConviction} data-testid="button-add-conviction">Add</Button>
             </div>
           )}
 
