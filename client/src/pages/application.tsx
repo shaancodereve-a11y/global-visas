@@ -5544,6 +5544,89 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
               </div>
             </div>
           )}
+
+          {fundingSource === "Supported by other organisation" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Type of support</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.orgSupportType as string) || ""} onValueChange={(val) => updateFormData({ orgSupportType: val })}>
+                    <SelectTrigger data-testid="select-org-support-type">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Financial">Financial</SelectItem>
+                      <SelectItem value="Accommodation">Accommodation</SelectItem>
+                      <SelectItem value="All costs">All costs</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-start gap-4">
+                <Label className="text-sm pt-2">What funds will the applicant have available to support their stay in Australia?</Label>
+                <div className="col-span-2">
+                  <Textarea value={(formData.orgFundedDetails as string) || ""} onChange={(e) => updateFormData({ orgFundedDetails: e.target.value })} rows={5} data-testid="textarea-org-funded-details" />
+                </div>
+              </div>
+
+              <h3 className="text-base font-bold text-primary mt-6 mb-2">Organisation address</h3>
+              <p className="text-sm text-muted-foreground mb-3">Note that a street address is required. A post office address cannot be accepted as an organisation address.</p>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Country</Label>
+                <div className="col-span-2">
+                  <Select value={(formData.fundingOrgCountry as string) || ""} onValueChange={(val) => updateFormData({ fundingOrgCountry: val })}>
+                    <SelectTrigger data-testid="select-funding-org-country">
+                      <SelectValue placeholder="" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNTRIES.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Address</Label>
+                <div className="col-span-2 space-y-2">
+                  <Input value={(formData.fundingOrgAddress1 as string) || ""} onChange={(e) => updateFormData({ fundingOrgAddress1: e.target.value })} data-testid="input-funding-org-address1" />
+                  <Input value={(formData.fundingOrgAddress2 as string) || ""} onChange={(e) => updateFormData({ fundingOrgAddress2: e.target.value })} data-testid="input-funding-org-address2" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Suburb / Town</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.fundingOrgSuburb as string) || ""} onChange={(e) => updateFormData({ fundingOrgSuburb: e.target.value })} data-testid="input-funding-org-suburb" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">{(formData.fundingOrgCountry as string) === "Australia" ? "State or Territory" : "State or Province"}</Label>
+                <div className="col-span-2">
+                  {(formData.fundingOrgCountry as string) === "Australia" ? (
+                    <Select value={(formData.fundingOrgState as string) || ""} onValueChange={(val) => updateFormData({ fundingOrgState: val })}>
+                      <SelectTrigger data-testid="select-funding-org-state">
+                        <SelectValue placeholder="" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Australian Capital Territory", "New South Wales", "Northern Territory", "Queensland", "South Australia", "Tasmania", "Victoria", "Western Australia"].map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={(formData.fundingOrgState as string) || ""} onChange={(e) => updateFormData({ fundingOrgState: e.target.value })} data-testid="input-funding-org-state" />
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label className="text-sm">Postal code</Label>
+                <div className="col-span-2">
+                  <Input value={(formData.fundingOrgPostalCode as string) || ""} onChange={(e) => updateFormData({ fundingOrgPostalCode: e.target.value })} className="max-w-[200px]" data-testid="input-funding-org-postal-code" />
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
