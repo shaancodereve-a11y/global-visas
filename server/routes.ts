@@ -107,16 +107,16 @@ export async function registerRoutes(
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return res.status(400).json({ error: "Email/username and password are required" });
+        return res.status(400).json({ error: "Email and password are required" });
       }
 
-      let user = await storage.getUserByEmail(email);
-      if (!user) {
-        const allUsers = await storage.getAllUsers();
-        user = allUsers.find((u) => u.firstName?.toLowerCase() === email.toLowerCase()) || undefined;
-      }
+      const user = await storage.getUserByEmail(email);
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      if (user.role === "admin") {
+        return res.status(403).json({ error: "Please use the admin login page" });
       }
 
       const validPassword = await bcrypt.compare(password, user.password);
@@ -129,6 +129,40 @@ export async function registerRoutes(
       res.json(userData);
     } catch (error) {
       console.error("Login error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/admin-login", async (req: Request, res: Response) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      let user = await storage.getUserByEmail(username);
+      if (!user) {
+        const allUsers = await storage.getAllUsers();
+        user = allUsers.find((u) => u.email === username || u.firstName?.toLowerCase() === username.toLowerCase()) || undefined;
+      }
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      if (user.role !== "admin") {
+        return res.status(403).json({ error: "Access denied. Admin accounts only." });
+      }
+
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      req.session.userId = user.id;
+      const { password: _, ...userData } = user;
+      res.json(userData);
+    } catch (error) {
+      console.error("Admin login error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -601,21 +635,24 @@ export async function registerRoutes(
 
   async function seedAdminAccount() {
     try {
-      const adminEmail = "admin";
-      const existing = await storage.getUserByEmail(adminEmail);
+      const adminUsername = "admin";
+      const hashedPassword = await bcrypt.hash("admin", 10);
+      const existing = await storage.getUserByEmail(adminUsername);
       if (!existing) {
-        const hashedPassword = await bcrypt.hash("admin", 10);
         await storage.createUser({
-          email: adminEmail,
+          email: adminUsername,
           firstName: "Admin",
           lastName: "User",
           password: hashedPassword,
         });
-        const admin = await storage.getUserByEmail(adminEmail);
+        const admin = await storage.getUserByEmail(adminUsername);
         if (admin) {
           await pool.query('UPDATE users SET role = $1, email_verified = $2 WHERE id = $3', ['admin', true, admin.id]);
         }
         console.log("Admin account seeded successfully (admin/admin)");
+      } else {
+        await pool.query('UPDATE users SET password = $1, role = $2, email_verified = $3 WHERE email = $4', [hashedPassword, 'admin', true, adminUsername]);
+        console.log("Admin account password reset (admin/admin)");
       }
     } catch (error) {
       console.error("Admin seeding error:", error);

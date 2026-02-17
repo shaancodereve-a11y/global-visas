@@ -20,9 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const logout = async () => {
+    const isAdmin = user?.role === "admin";
     await apiRequest("POST", "/api/auth/logout");
     queryClient.setQueryData(["/api/auth/me"], null);
-    window.location.href = "/login";
+    window.location.href = isAdmin ? "/admin/login" : "/login";
   };
 
   return (

@@ -52,6 +52,7 @@ A secure multi-step visa application management system for Global Visas. Users c
 - `SESSION_SECRET` - Session encryption secret (auto-generated fallback exists)
 
 ## Recent Changes
+- 2026-02-17: Separated admin and user login - /admin/login is dedicated admin portal, /login is for regular users only. Admin accounts blocked from regular login. Admin password auto-resets on every server startup.
 - 2026-02-17: Fixed admin login - login route now supports username lookup (not just email), reset admin passwords to "admin". Admin credentials: username "admin" or email "shaan.codereve@gmail.com", password "admin"
 - 2026-02-17: Added Step 22 (Attach Documents) with per-category uploads, admin application detail page with document management, login supports username for admin
 - 2026-02-13: Initial build - full auth system, all 20 form steps, Step 21 Review, dashboards, email system

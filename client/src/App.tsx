@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
+import AdminLoginPage from "@/pages/admin-login";
 import DashboardPage from "@/pages/dashboard";
 import ApplicationPage from "@/pages/application";
 import ApplicationViewPage from "@/pages/application-view";
@@ -44,10 +45,32 @@ function AdminRoute({ component: Component }: { component: () => JSX.Element }) 
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to="/admin/login" />;
   }
 
   if (user.role !== "admin") {
+    return <Redirect to="/dashboard" />;
+  }
+
+  return <Component />;
+}
+
+function AdminPublicRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (user && user.role === "admin") {
+    return <Redirect to="/admin" />;
+  }
+
+  if (user) {
     return <Redirect to="/dashboard" />;
   }
 
@@ -92,6 +115,9 @@ function Router() {
       </Route>
       <Route path="/application/:id/view">
         <ProtectedRoute component={ApplicationViewPage} />
+      </Route>
+      <Route path="/admin/login">
+        <AdminPublicRoute component={AdminLoginPage} />
       </Route>
       <Route path="/admin/application/:id">
         <AdminRoute component={AdminApplicationPage} />
