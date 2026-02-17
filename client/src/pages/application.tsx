@@ -7673,6 +7673,395 @@ function Step20Declarations({ formData, updateFormData }: StepProps) {
   );
 }
 
+function StepReview({ formData }: StepProps) {
+  const field = (label: string, key: string) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm">{(formData[key] as string) || "Not provided"}</span>
+    </div>
+  );
+
+  const yesNo = (label: string, key: string) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm">{(formData[key] as string) || "Not provided"}</span>
+    </div>
+  );
+
+  const renderTable = (data: Array<Record<string, string>> | undefined, columns: { key: string; label: string }[]) => {
+    if (!data || data.length === 0) return <span className="text-sm text-muted-foreground">None provided</span>;
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse" data-testid="table-review">
+          <thead>
+            <tr className="border-b">
+              {columns.map((col) => (
+                <th key={col.key} className="text-left p-2 text-muted-foreground font-medium">{col.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i} className="border-b last:border-b-0">
+                {columns.map((col) => (
+                  <td key={col.key} className="p-2">{row[col.key] || "-"}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const charDetailFields: { key: string; detailKey: string; label: string }[] = [
+    { key: "charArrestWarrant", detailKey: "charArrestWarrantDetails", label: "Arrest warrant" },
+    { key: "charSexualOffence", detailKey: "charSexualOffenceDetails", label: "Sexual offence" },
+    { key: "charSexOffenderRegister", detailKey: "charSexOffenderRegisterDetails", label: "Sex offender register" },
+    { key: "charAcquittedInsanity", detailKey: "charAcquittedInsanityDetails", label: "Acquitted by insanity" },
+    { key: "charUnfitPlead", detailKey: "charUnfitPleadDetails", label: "Unfit to plead" },
+    { key: "charNationalSecurity", detailKey: "charNationalSecurityDetails", label: "National security concern" },
+    { key: "charWarCrimes", detailKey: "charWarCrimesDetails", label: "War crimes" },
+    { key: "charCriminalConduct", detailKey: "charCriminalConductDetails", label: "Criminal conduct" },
+    { key: "charViolenceOrg", detailKey: "charViolenceOrgDetails", label: "Violence organisation" },
+    { key: "charPeopleSmuggling", detailKey: "charPeopleSmugglingDetails", label: "People smuggling" },
+    { key: "charDeported", detailKey: "charDeportedDetails", label: "Deported" },
+    { key: "charVisaOverstay", detailKey: "charVisaOverstayDetails", label: "Visa overstay" },
+    { key: "charOutstandingDebts", detailKey: "charOutstandingDebtsDetails", label: "Outstanding debts" },
+  ];
+
+  const declarations: { key: string; label: string }[] = [
+    { key: "declReadUnderstood", label: "I have read and understood the information provided" },
+    { key: "declCompleteCorrect", label: "The information is complete and correct" },
+    { key: "declFraudulentRefusal", label: "I understand fraudulent documents may lead to refusal" },
+    { key: "declFraudulentCancellation", label: "I understand fraud may lead to cancellation" },
+    { key: "declInformChanges", label: "I will inform of any changes in circumstances" },
+    { key: "declPrivacyNotice", label: "I have read and understood the privacy notice" },
+    { key: "declPersonalInfo", label: "I consent to collection of personal information" },
+    { key: "declNoFurtherStay", label: "No further stay condition acknowledged" },
+    { key: "declNoStudyTraining", label: "No study or training condition acknowledged" },
+    { key: "declLeaveAustralia", label: "I will leave Australia before visa expires" },
+    { key: "declFingerprints", label: "Fingerprints may be collected" },
+    { key: "declFingerprintsLawEnforcement", label: "Fingerprints may be used by law enforcement" },
+    { key: "declLawEnforcementConsent", label: "I consent to law enforcement checks" },
+    { key: "declNoWork", label: "No work condition acknowledged" },
+    { key: "declBiometricConsent", label: "I consent to biometric collection" },
+    { key: "declUnlawfulNonCitizen", label: "Unlawful non-citizen acknowledgement" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-review-title">Review</h2>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 1 - Terms & Conditions</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <span className="text-sm text-muted-foreground">Terms accepted</span>
+            <span className="text-sm">{formData.termsAccepted ? "Yes" : "No"}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 2 - Application Context</h3>
+          {yesNo("Is the applicant currently outside Australia?", "outsideAustralia")}
+          {formData.outsideAustralia === "yes" && (
+            <>
+              {field("Current location", "currentLocation")}
+              {field("Legal status", "legalStatus")}
+              {field("Visa stream", "visaStream")}
+              {formData.visaStream === "frequent" && field("Frequent traveller purpose", "frequentPurpose")}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <span className="text-sm text-muted-foreground">Reasons for visiting</span>
+                <span className="text-sm">{((formData.visitReasons as string[]) || []).join(", ") || "Not provided"}</span>
+              </div>
+              {field("Significant dates", "significantDates")}
+              {yesNo("Group processing", "groupProcessing")}
+              {formData.groupProcessing === "yes" && (
+                <>
+                  {yesNo("Group already created", "groupAlreadyCreated")}
+                  {formData.groupAlreadyCreated === "yes" && field("Group ID", "groupId")}
+                  {formData.groupAlreadyCreated === "no" && (
+                    <>
+                      {field("Group name", "groupName")}
+                      {field("Group type", "groupType")}
+                    </>
+                  )}
+                </>
+              )}
+              {yesNo("Special category of entry", "specialCategory")}
+              {formData.specialCategory === "yes" && field("Special category type", "specialCategoryType")}
+            </>
+          )}
+          {formData.outsideAustralia === "no" && (
+            <>
+              {field("Length of further stay", "furtherStayLength")}
+              {field("Requested end date", "requestedEndDate")}
+              {field("Reason for further stay", "furtherStayReason")}
+              {yesNo("Special category of entry", "specialCategory")}
+              {formData.specialCategory === "yes" && field("Special category type", "specialCategoryType")}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 3 - Applicant</h3>
+          {field("Family name", "familyName")}
+          {field("Given names", "givenNames")}
+          {field("Sex", "sex")}
+          {field("Date of birth", "dateOfBirth")}
+          {field("Passport number", "passportNumber")}
+          {field("Country of passport", "countryOfPassport")}
+          {field("Nationality of holder", "nationalityOfHolder")}
+          {field("Date of issue", "dateOfIssue")}
+          {field("Date of expiry", "dateOfExpiry")}
+          {field("Place of issue", "placeOfIssue")}
+          {yesNo("Has national identity card", "hasNationalIdCard")}
+          {formData.hasNationalIdCard === "yes" && renderTable(
+            formData.nationalIdCards as Array<Record<string, string>>,
+            [{ key: "idNumber", label: "ID Number" }, { key: "countryOfIssue", label: "Country of Issue" }]
+          )}
+          {yesNo("Pacific Australia Card holder", "isPacificAustraliaCardHolder")}
+          {formData.isPacificAustraliaCardHolder === "yes" && field("Card serial", "pacificAustraliaCardSerial")}
+          {field("Birth country", "birthCountry")}
+          {field("Birth state", "birthState")}
+          {field("Birth city", "birthCity")}
+          {field("Relationship status", "relationshipStatus")}
+          {yesNo("Has other names", "hasOtherNames")}
+          {formData.hasOtherNames === "yes" && renderTable(
+            formData.otherNames as Array<Record<string, string>>,
+            [{ key: "familyName", label: "Family Name" }, { key: "givenNames", label: "Given Names" }, { key: "reason", label: "Reason" }, { key: "otherReason", label: "Other Reason" }]
+          )}
+          {yesNo("Citizen of passport country", "citizenOfPassportCountry")}
+          {yesNo("Citizen of other country", "citizenOfOtherCountry")}
+          {formData.citizenOfOtherCountry === "yes" && renderTable(
+            formData.otherCitizenships as Array<Record<string, string>>,
+            [{ key: "country", label: "Country" }]
+          )}
+          {yesNo("Previously travelled to Australia", "previouslyTravelledToAustralia")}
+          {yesNo("Previously applied for visa", "previouslyAppliedForVisa")}
+          {yesNo("Has grant number", "hasGrantNumber")}
+          {formData.hasGrantNumber === "yes" && field("Visa grant number", "visaGrantNumber")}
+          {yesNo("Has other passports", "hasOtherPassports")}
+          {formData.hasOtherPassports === "yes" && renderTable(
+            formData.otherPassports as Array<Record<string, string>>,
+            [{ key: "country", label: "Country" }, { key: "passportNumber", label: "Passport Number" }, { key: "holderName", label: "Holder Name" }]
+          )}
+          {yesNo("Has other identity documents", "hasOtherIdentityDocs")}
+          {formData.hasOtherIdentityDocs === "yes" && renderTable(
+            formData.otherIdentityDocs as Array<Record<string, string>>,
+            [{ key: "docType", label: "Document Type" }, { key: "identificationNumber", label: "ID Number" }, { key: "holderName", label: "Holder Name" }, { key: "countryOfIssue", label: "Country" }]
+          )}
+          {yesNo("Has health examination", "hasHealthExamination")}
+          {formData.hasHealthExamination === "yes" && field("Health examination details", "healthExaminationDetails")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 5 - Travelling Companions</h3>
+          {yesNo("Has travelling companions", "hasTravellingCompanions")}
+          {formData.hasTravellingCompanions === "yes" && renderTable(
+            formData.travellingCompanions as Array<Record<string, string>>,
+            [{ key: "familyName", label: "Family Name" }, { key: "givenNames", label: "Given Names" }, { key: "dateOfBirth", label: "DOB" }, { key: "sex", label: "Sex" }, { key: "relationship", label: "Relationship" }, { key: "passportCountry", label: "Passport Country" }]
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 6 - Contact Details</h3>
+          {field("Address line 1", "addressLine1")}
+          {field("Address line 2", "addressLine2")}
+          {field("Suburb", "suburb")}
+          {field("State / Province", "stateProvince")}
+          {field("Postal code", "postalCode")}
+          {field("Country", "country")}
+          {field("Phone", "phone")}
+          {field("Mobile phone", "mobilePhone")}
+          {field("Work phone", "workPhone")}
+          {field("Email", "email")}
+          {yesNo("Has authorised recipient", "hasAuthorisedRecipient")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 7 - Authorised Recipient</h3>
+          {yesNo("Authorised recipient", "authorisedRecipient")}
+          {field("Recipient type", "recipientType")}
+          {field("Family name", "recipientFamilyName")}
+          {field("Given names", "recipientGivenNames")}
+          {field("Organisation name", "recipientOrganisationName")}
+          {field("Position", "recipientPosition")}
+          {field("Address line 1", "recipientAddress1")}
+          {field("Address line 2", "recipientAddress2")}
+          {field("Suburb", "recipientSuburb")}
+          {field("State", "recipientState")}
+          {field("Postal code", "recipientPostalCode")}
+          {field("Country", "recipientCountry")}
+          {field("Phone", "recipientPhone")}
+          {field("Mobile", "recipientMobile")}
+          {field("Fax", "recipientFax")}
+          {field("Email", "recipientEmail")}
+          {yesNo("Electronic correspondence", "recipientElectronicCorrespondence")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 8 - Paying for the Visa</h3>
+          {field("Payer type", "payerType")}
+          {field("Family name", "payerFamilyName")}
+          {field("Given names", "payerGivenNames")}
+          {field("Date of birth", "payerDateOfBirth")}
+          {field("Phone", "payerPhone")}
+          {field("Mobile", "payerMobile")}
+          {field("Email", "payerEmail")}
+          {field("Address line 1", "payerAddress1")}
+          {field("Address line 2", "payerAddress2")}
+          {field("Suburb", "payerSuburb")}
+          {field("State", "payerState")}
+          {field("Postal code", "payerPostalCode")}
+          {field("Country", "payerCountry")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 9 - Purpose of Stay</h3>
+          {field("Visit purpose", "visitPurpose")}
+          {field("Other purpose", "visitPurposeOther")}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <span className="text-sm text-muted-foreground">Proposed stay</span>
+            <span className="text-sm">{formData.proposedStayDuration ? `${formData.proposedStayDuration} ${formData.proposedStayUnit || ""}` : "Not provided"}</span>
+          </div>
+          {field("Intended date of arrival", "intendedDateOfArrival")}
+          {field("Australian address", "australianAddress")}
+          {yesNo("Visiting relatives", "hasVisitRelatives")}
+          {formData.hasVisitRelatives === "yes" && renderTable(
+            formData.visitRelatives as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "address", label: "Address" }, { key: "relationship", label: "Relationship" }]
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 11 - Employment</h3>
+          {field("Employment status", "employmentStatus")}
+          {field("Employer name", "employerName")}
+          {field("Employer address", "employerAddress")}
+          {field("Job title", "jobTitle")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 12 - Financial Support</h3>
+          {field("Funding source", "fundingSource")}
+          {field("Other funding source", "fundingSourceOther")}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <span className="text-sm text-muted-foreground">Funds available</span>
+            <span className="text-sm">{formData.fundsAvailable ? `${formData.fundsAvailable} ${formData.fundsCurrency || ""}` : "Not provided"}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 16 - Health Declarations</h3>
+          {yesNo("Consulted a health professional", "healthConsulted")}
+          {formData.healthConsulted === "Yes" && field("Details", "healthConsultedDetails")}
+          {yesNo("Medical condition", "healthMedicalCondition")}
+          {formData.healthMedicalCondition === "Yes" && field("Details", "healthMedicalConditionDetails")}
+          {yesNo("Requires medication", "healthRequireMedication")}
+          {formData.healthRequireMedication === "Yes" && field("Details", "healthRequireMedicationDetails")}
+          {yesNo("Pregnant", "healthPregnant")}
+          {formData.healthPregnant === "Yes" && field("Details", "healthPregnantDetails")}
+          {yesNo("Requires assistance", "healthRequireAssistance")}
+          {formData.healthRequireAssistance === "Yes" && field("Details", "healthRequireAssistanceDetails")}
+          {yesNo("Health cost incurred", "healthCostIncurred")}
+          {formData.healthCostIncurred === "Yes" && renderTable(
+            formData.healthCostEntries as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "condition", label: "Condition" }, { key: "date", label: "Date" }, { key: "estimatedCost", label: "Est. Cost" }]
+          )}
+          {yesNo("Ongoing care", "healthOngoingCare")}
+          {formData.healthOngoingCare === "Yes" && renderTable(
+            formData.healthOngoingCareEntries as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "condition", label: "Condition" }, { key: "treatment", label: "Treatment" }, { key: "frequency", label: "Frequency" }, { key: "cost", label: "Cost" }, { key: "duration", label: "Duration" }]
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 17 - Character Declarations</h3>
+          {yesNo("Charged with offence", "charOffenceCharged")}
+          {formData.charOffenceCharged === "Yes" && renderTable(
+            formData.charOffences as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "offenceType", label: "Offence Type" }, { key: "date", label: "Date" }, { key: "description", label: "Description" }]
+          )}
+          {yesNo("Convicted", "charConvicted")}
+          {formData.charConvicted === "Yes" && renderTable(
+            formData.charConvictions as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "offenceType", label: "Offence Type" }, { key: "date", label: "Date" }, { key: "description", label: "Description" }]
+          )}
+          {yesNo("Domestic violence", "charDomesticViolence")}
+          {formData.charDomesticViolence === "Yes" && renderTable(
+            formData.charDVOs as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "offenceType", label: "Offence Type" }, { key: "date", label: "Date" }, { key: "description", label: "Description" }]
+          )}
+          {yesNo("Military service", "charMilitaryService")}
+          {formData.charMilitaryService === "Yes" && renderTable(
+            formData.charMilitaryEntries as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "country", label: "Country" }, { key: "dateFrom", label: "From" }, { key: "dateTo", label: "To" }, { key: "details", label: "Details" }]
+          )}
+          {yesNo("Military training", "charMilitaryTraining")}
+          {formData.charMilitaryTraining === "Yes" && renderTable(
+            formData.charTrainingEntries as Array<Record<string, string>>,
+            [{ key: "name", label: "Name" }, { key: "country", label: "Country" }, { key: "dateFrom", label: "From" }, { key: "dateTo", label: "To" }, { key: "details", label: "Details" }]
+          )}
+          {charDetailFields.map(({ key, detailKey, label }) => (
+            <div key={key}>
+              {yesNo(label, key)}
+              {formData[key] === "Yes" && field("Details", detailKey)}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 18 - Visa History</h3>
+          {yesNo("Previously held a visa", "visaHeldVisa")}
+          {formData.visaHeldVisa === "Yes" && field("Details", "visaHeldVisaDetails")}
+          {yesNo("Non-complied with visa conditions", "visaNonComplied")}
+          {formData.visaNonComplied === "Yes" && field("Details", "visaNonCompliedDetails")}
+          {yesNo("Visa refused or cancelled", "visaRefusedCancelled")}
+          {formData.visaRefusedCancelled === "Yes" && field("Details", "visaRefusedCancelledDetails")}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-primary">Step 20 - Declarations</h3>
+          {declarations.map(({ key, label }) => (
+            <div key={key} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <span className="text-sm text-muted-foreground">{label}</span>
+              <span className="text-sm">{(formData[key] as string) || "Not provided"}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -7968,11 +8357,12 @@ export default function ApplicationPage() {
 
   const handleDeclarationConfirm = useCallback(() => {
     setShowDeclarationWarning(false);
-    const newStep = 20;
+    const newStep = 21;
     saveMutation.mutate(
       { formData, currentStep: newStep },
       {
         onSuccess: () => {
+          setCurrentStep(newStep);
           toast({ title: "Step 20 complete", description: "Moving to the review page." });
         },
       }
@@ -8010,7 +8400,7 @@ export default function ApplicationPage() {
   }
 
   const totalSteps = 20;
-  const progressPercent = (currentStep / totalSteps) * 100;
+  const progressPercent = Math.min((currentStep / totalSteps) * 100, 100);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -8044,6 +8434,8 @@ export default function ApplicationPage() {
         return <Step18VisaHistory formData={formData} updateFormData={updateFormData} />;
       case 20:
         return <Step20Declarations formData={formData} updateFormData={updateFormData} />;
+      case 21:
+        return <StepReview formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
