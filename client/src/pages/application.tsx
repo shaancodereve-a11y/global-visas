@@ -5747,6 +5747,119 @@ function Step12FinancialSupport({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-step16-title">Health declarations</h2>
+
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm">In the last five years, has any applicant visited, or lived, outside their country of passport, for more than 3 consecutive months? Do not include time spent in Australia.</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthVisitedOutside" value={opt} checked={(formData.healthVisitedOutside as string) === opt} onChange={(e) => updateFormData({ healthVisitedOutside: e.target.value })} data-testid={`radio-health-visited-outside-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Does any applicant intend to enter a hospital or a health care facility (including nursing homes) while in Australia?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthEnterHospital" value={opt} checked={(formData.healthEnterHospital as string) === opt} onChange={(e) => updateFormData({ healthEnterHospital: e.target.value })} data-testid={`radio-health-enter-hospital-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Does any applicant intend to work as, or study or train to be, a health care worker or work within a health care facility while in Australia?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthWorkHealthcare" value={opt} checked={(formData.healthWorkHealthcare as string) === opt} onChange={(e) => updateFormData({ healthWorkHealthcare: e.target.value })} data-testid={`radio-health-work-healthcare-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Does any applicant intend to work, study or train within aged care or disability care while in Australia?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthAgedCare" value={opt} checked={(formData.healthAgedCare as string) === opt} onChange={(e) => updateFormData({ healthAgedCare: e.target.value })} data-testid={`radio-health-aged-care-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant:</p>
+            <ul className="list-disc ml-6 space-y-1 text-sm text-muted-foreground">
+              <li>ever had, or currently have, tuberculosis?</li>
+              <li>been in close contact with a family member that has active tuberculosis?</li>
+              <li>ever had a chest x-ray which showed an abnormality?</li>
+            </ul>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthTuberculosis" value={opt} checked={(formData.healthTuberculosis as string) === opt} onChange={(e) => updateFormData({ healthTuberculosis: e.target.value })} data-testid={`radio-health-tuberculosis-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">During their proposed visit to Australia, does any applicant expect to incur medical costs, or require treatment or medical follow up for:</p>
+            <ul className="list-disc ml-6 space-y-1 text-sm text-muted-foreground">
+              <li>blood disorder</li>
+              <li>cancer</li>
+              <li>heart disease</li>
+              <li>hepatitis B or C and/or liver disease</li>
+              <li>HIV infection, including AIDS</li>
+              <li>kidney disease, including dialysis</li>
+              <li>mental illness</li>
+              <li>pregnancy</li>
+              <li>respiratory disease that has required hospital admission or oxygen therapy</li>
+              <li>other?</li>
+            </ul>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthMedicalCosts" value={opt} checked={(formData.healthMedicalCosts as string) === opt} onChange={(e) => updateFormData({ healthMedicalCosts: e.target.value })} data-testid={`radio-health-medical-costs-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm">Does any applicant require ongoing medical care or need special equipment, assistive technology or assistance from others for daily living?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="healthOngoingCare" value={opt} checked={(formData.healthOngoingCare as string) === opt} onChange={(e) => updateFormData({ healthOngoingCare: e.target.value })} data-testid={`radio-health-ongoing-care-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -5798,6 +5911,7 @@ export default function ApplicationPage() {
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
       let newStep = currentStep - 1;
+      if (newStep >= 13 && newStep <= 15) newStep = 12;
       if (newStep === 10) newStep = 9;
       saveMutation.mutate(
         { formData, currentStep: newStep },
@@ -6010,6 +6124,7 @@ export default function ApplicationPage() {
 
     let newStep = currentStep + 1;
     if (newStep === 10) newStep = 11;
+    if (newStep >= 13 && newStep <= 15) newStep = 16;
     saveMutation.mutate(
       { formData, currentStep: newStep },
       {
@@ -6078,6 +6193,8 @@ export default function ApplicationPage() {
         return <Step11OverseasEmployment formData={formData} updateFormData={updateFormData} />;
       case 12:
         return <Step12FinancialSupport formData={formData} updateFormData={updateFormData} />;
+      case 16:
+        return <Step16HealthDeclarations formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
