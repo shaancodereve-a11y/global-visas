@@ -5764,9 +5764,15 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const [healthcareWorkDetails, setHealthcareWorkDetails] = useState("");
   const [editingHealthcareWorkIndex, setEditingHealthcareWorkIndex] = useState<number | null>(null);
 
+  const [agedCareFormOpen, setAgedCareFormOpen] = useState(false);
+  const [agedCareRole, setAgedCareRole] = useState("");
+  const [agedCareDetails, setAgedCareDetails] = useState("");
+  const [editingAgedCareIndex, setEditingAgedCareIndex] = useState<number | null>(null);
+
   const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
   const hospitalEntries = (formData.healthHospitalEntries as Array<{ name: string; reason: string; details: string }>) || [];
   const healthcareWorkEntries = (formData.healthWorkHealthcareEntries as Array<{ name: string; role: string; details: string }>) || [];
+  const agedCareEntries = (formData.healthAgedCareEntries as Array<{ name: string; role: string; details: string }>) || [];
   const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
   const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
   const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
@@ -5865,6 +5871,91 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteHealthcareWork = (index: number) => {
     updateFormData({ healthWorkHealthcareEntries: healthcareWorkEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddAgedCare = () => {
+    setAgedCareRole("");
+    setAgedCareDetails("");
+    setEditingAgedCareIndex(null);
+    setAgedCareFormOpen(true);
+  };
+
+  const handleConfirmAgedCare = () => {
+    const entry = { name: nameDisplay, role: agedCareRole, details: agedCareDetails };
+    if (editingAgedCareIndex !== null) {
+      const updated = [...agedCareEntries];
+      updated[editingAgedCareIndex] = entry;
+      updateFormData({ healthAgedCareEntries: updated });
+    } else {
+      updateFormData({ healthAgedCareEntries: [...agedCareEntries, entry] });
+    }
+    setAgedCareFormOpen(false);
+  };
+
+  const handleEditAgedCare = (index: number) => {
+    const a = agedCareEntries[index];
+    setAgedCareRole(a.role);
+    setAgedCareDetails(a.details);
+    setEditingAgedCareIndex(index);
+    setAgedCareFormOpen(true);
+  };
+
+  const handleDeleteAgedCare = (index: number) => {
+    updateFormData({ healthAgedCareEntries: agedCareEntries.filter((_, i) => i !== index) });
+  };
+
+  if (agedCareFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Intention to work in age care or disability care</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details of all applicants that intend to work in aged care or disability care during their stay in Australia.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-aged-care-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Role</Label>
+              <div className="col-span-2">
+                <Select value={agedCareRole} onValueChange={setAgedCareRole}>
+                  <SelectTrigger data-testid="select-aged-care-role">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Carer">Carer</SelectItem>
+                    <SelectItem value="Nurse">Nurse</SelectItem>
+                    <SelectItem value="Student">Student</SelectItem>
+                    <SelectItem value="Trainee">Trainee</SelectItem>
+                    <SelectItem value="Worker">Worker</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={agedCareDetails} onChange={(e) => setAgedCareDetails(e.target.value)} rows={4} data-testid="textarea-aged-care-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setAgedCareFormOpen(false)} data-testid="button-aged-care-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmAgedCare} data-testid="button-aged-care-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (healthcareWorkFormOpen) {
     return (
@@ -6184,6 +6275,40 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthAgedCare as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Role</th>
+                      <th className="text-left p-2 font-medium">Details</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {agedCareEntries.map((a, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{a.name}</td>
+                        <td className="p-2">{a.role}</td>
+                        <td className="p-2">{a.details}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditAgedCare(i)} data-testid={`button-edit-aged-care-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteAgedCare(i)} data-testid={`button-delete-aged-care-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddAgedCare} data-testid="button-add-aged-care">Add</Button>
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm">Has any applicant:</p>
