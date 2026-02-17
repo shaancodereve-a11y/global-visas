@@ -110,7 +110,11 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Email/username and password are required" });
       }
 
-      const user = await storage.getUserByEmail(email);
+      let user = await storage.getUserByEmail(email);
+      if (!user) {
+        const allUsers = await storage.getAllUsers();
+        user = allUsers.find((u) => u.firstName?.toLowerCase() === email.toLowerCase()) || undefined;
+      }
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
       }

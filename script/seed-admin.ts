@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 async function seedAdmin() {
   const email = "shaan.codereve@gmail.com";
-  const password = "admin123!@#";
+  const password = "admin";
 
   const existing = await db.select().from(users).where(eq(users.email, email));
 
