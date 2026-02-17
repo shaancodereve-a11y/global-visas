@@ -6727,9 +6727,17 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const [dvoDetails, setDvoDetails] = useState("");
   const [editingDvoIndex, setEditingDvoIndex] = useState<number | null>(null);
 
+  const [militaryFormOpen, setMilitaryFormOpen] = useState(false);
+  const [militaryCountry, setMilitaryCountry] = useState("");
+  const [militaryDateFrom, setMilitaryDateFrom] = useState("");
+  const [militaryDateTo, setMilitaryDateTo] = useState("");
+  const [militaryDetails, setMilitaryDetails] = useState("");
+  const [editingMilitaryIndex, setEditingMilitaryIndex] = useState<number | null>(null);
+
   const offenceEntries = (formData.charOffenceEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
   const convictionEntries = (formData.charConvictedEntries as Array<{ name: string; offenceType: string; date: string; description: string }>) || [];
   const dvoEntries = (formData.charDvoEntries as Array<{ name: string; date: string; details: string }>) || [];
+  const militaryEntries = (formData.charMilitaryEntries as Array<{ name: string; country: string; dateFrom: string; dateTo: string; details: string }>) || [];
 
   const handleAddOffence = () => {
     setOffenceType("");
@@ -6827,6 +6835,104 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteDvo = (index: number) => {
     updateFormData({ charDvoEntries: dvoEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddMilitary = () => {
+    setMilitaryCountry("");
+    setMilitaryDateFrom("");
+    setMilitaryDateTo("");
+    setMilitaryDetails("");
+    setEditingMilitaryIndex(null);
+    setMilitaryFormOpen(true);
+  };
+
+  const handleConfirmMilitary = () => {
+    const entry = { name: nameDisplay, country: militaryCountry, dateFrom: militaryDateFrom, dateTo: militaryDateTo, details: militaryDetails };
+    if (editingMilitaryIndex !== null) {
+      const updated = [...militaryEntries];
+      updated[editingMilitaryIndex] = entry;
+      updateFormData({ charMilitaryEntries: updated });
+    } else {
+      updateFormData({ charMilitaryEntries: [...militaryEntries, entry] });
+    }
+    setMilitaryFormOpen(false);
+  };
+
+  const handleEditMilitary = (index: number) => {
+    const m = militaryEntries[index];
+    setMilitaryCountry(m.country);
+    setMilitaryDateFrom(m.dateFrom);
+    setMilitaryDateTo(m.dateTo);
+    setMilitaryDetails(m.details);
+    setEditingMilitaryIndex(index);
+    setMilitaryFormOpen(true);
+  };
+
+  const handleDeleteMilitary = (index: number) => {
+    updateFormData({ charMilitaryEntries: militaryEntries.filter((_, i) => i !== index) });
+  };
+
+  if (militaryFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Details of military service</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <p className="text-sm text-muted-foreground">Give details, including a description of the duties performed.</p>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-military-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Country of service</Label>
+              <div className="col-span-2">
+                <Select value={militaryCountry} onValueChange={setMilitaryCountry}>
+                  <SelectTrigger data-testid="select-military-country">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date from</Label>
+              <div className="col-span-2">
+                <Input type="date" value={militaryDateFrom} onChange={(e) => setMilitaryDateFrom(e.target.value)} data-testid="input-military-date-from" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Date to</Label>
+              <div className="col-span-2">
+                <Input type="date" value={militaryDateTo} onChange={(e) => setMilitaryDateTo(e.target.value)} data-testid="input-military-date-to" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={militaryDetails} onChange={(e) => setMilitaryDetails(e.target.value)} rows={4} data-testid="textarea-military-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setMilitaryFormOpen(false)} data-testid="button-military-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmMilitary} data-testid="button-military-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (dvoFormOpen) {
     return (
@@ -7002,7 +7108,6 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   ];
 
   const remainingQuestions = [
-    { key: "charMilitaryService", text: "Has any applicant ever served in a military force, police force, state sponsored / private militia or intelligence agency (including secret police)?" },
     { key: "charMilitaryTraining", text: "Has any applicant ever undergone any military/paramilitary training, been trained in weapons/explosives or in the manufacture of chemical/biological products?" },
     { key: "charPeopleSmuggling", text: "Has any applicant ever been involved in people smuggling or people trafficking offences?" },
     { key: "charDeported", text: "Has any applicant ever been removed, deported or excluded from any country (including Australia)?" },
@@ -7195,6 +7300,54 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
               )}
             </div>
           ))}
+
+          <div className="space-y-2">
+            <p className="text-sm">Has any applicant ever served in a military force, police force, state sponsored / private militia or intelligence agency (including secret police)?</p>
+            <div className="flex gap-4">
+              {["Yes", "No"].map((opt) => (
+                <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="charMilitaryService" value={opt} checked={(formData.charMilitaryService as string) === opt} onChange={(e) => updateFormData({ charMilitaryService: e.target.value })} data-testid={`radio-charMilitaryService-${opt.toLowerCase()}`} />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {(formData.charMilitaryService as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Country of service</th>
+                      <th className="text-left p-2 font-medium">Date from</th>
+                      <th className="text-left p-2 font-medium">Date to</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {militaryEntries.map((m, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{m.name}</td>
+                        <td className="p-2">{m.country}</td>
+                        <td className="p-2">{m.dateFrom}</td>
+                        <td className="p-2">{m.dateTo}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditMilitary(i)} data-testid={`button-edit-military-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteMilitary(i)} data-testid={`button-delete-military-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddMilitary} data-testid="button-add-military">Add</Button>
+            </div>
+          )}
 
           {remainingQuestions.map((q) => (
             <div key={q.key} className="space-y-2">
