@@ -5759,8 +5759,14 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const [hospitalDetails, setHospitalDetails] = useState("");
   const [editingHospitalIndex, setEditingHospitalIndex] = useState<number | null>(null);
 
+  const [healthcareWorkFormOpen, setHealthcareWorkFormOpen] = useState(false);
+  const [healthcareWorkRole, setHealthcareWorkRole] = useState("");
+  const [healthcareWorkDetails, setHealthcareWorkDetails] = useState("");
+  const [editingHealthcareWorkIndex, setEditingHealthcareWorkIndex] = useState<number | null>(null);
+
   const visits = (formData.healthVisitedCountries as Array<{ name: string; country: string; dateFrom: string; dateTo: string }>) || [];
   const hospitalEntries = (formData.healthHospitalEntries as Array<{ name: string; reason: string; details: string }>) || [];
+  const healthcareWorkEntries = (formData.healthWorkHealthcareEntries as Array<{ name: string; role: string; details: string }>) || [];
   const applicantName = [formData.familyName, formData.givenNames].filter(Boolean).join(", ");
   const applicantDob = formData.dateOfBirth ? (() => { const d = new Date(formData.dateOfBirth as string); return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); })() : "";
   const nameDisplay = applicantDob ? `${(formData.familyName as string || "").toUpperCase()}, ${formData.givenNames || ""} (${applicantDob})` : applicantName;
@@ -5828,6 +5834,90 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
   const handleDeleteHospital = (index: number) => {
     updateFormData({ healthHospitalEntries: hospitalEntries.filter((_, i) => i !== index) });
   };
+
+  const handleAddHealthcareWork = () => {
+    setHealthcareWorkRole("");
+    setHealthcareWorkDetails("");
+    setEditingHealthcareWorkIndex(null);
+    setHealthcareWorkFormOpen(true);
+  };
+
+  const handleConfirmHealthcareWork = () => {
+    const entry = { name: nameDisplay, role: healthcareWorkRole, details: healthcareWorkDetails };
+    if (editingHealthcareWorkIndex !== null) {
+      const updated = [...healthcareWorkEntries];
+      updated[editingHealthcareWorkIndex] = entry;
+      updateFormData({ healthWorkHealthcareEntries: updated });
+    } else {
+      updateFormData({ healthWorkHealthcareEntries: [...healthcareWorkEntries, entry] });
+    }
+    setHealthcareWorkFormOpen(false);
+  };
+
+  const handleEditHealthcareWork = (index: number) => {
+    const h = healthcareWorkEntries[index];
+    setHealthcareWorkRole(h.role);
+    setHealthcareWorkDetails(h.details);
+    setEditingHealthcareWorkIndex(index);
+    setHealthcareWorkFormOpen(true);
+  };
+
+  const handleDeleteHealthcareWork = (index: number) => {
+    updateFormData({ healthWorkHealthcareEntries: healthcareWorkEntries.filter((_, i) => i !== index) });
+  };
+
+  if (healthcareWorkFormOpen) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold text-primary">Intention to work or study in health care</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Name</Label>
+              <div className="col-span-2">
+                <Select value={nameDisplay} onValueChange={() => {}}>
+                  <SelectTrigger data-testid="select-healthcare-work-name">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={nameDisplay}>{nameDisplay}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label className="text-sm">Role</Label>
+              <div className="col-span-2">
+                <Select value={healthcareWorkRole} onValueChange={setHealthcareWorkRole}>
+                  <SelectTrigger data-testid="select-healthcare-work-role">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Doctor">Doctor</SelectItem>
+                    <SelectItem value="Dentist">Dentist</SelectItem>
+                    <SelectItem value="Nurse">Nurse</SelectItem>
+                    <SelectItem value="Student">Student</SelectItem>
+                    <SelectItem value="Trainee">Trainee</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 items-start gap-4">
+              <Label className="text-sm pt-2">Give details</Label>
+              <div className="col-span-2">
+                <Textarea value={healthcareWorkDetails} onChange={(e) => setHealthcareWorkDetails(e.target.value)} rows={4} data-testid="textarea-healthcare-work-details" />
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 pt-4">
+              <Button variant="outline" size="sm" onClick={() => setHealthcareWorkFormOpen(false)} data-testid="button-healthcare-work-cancel">Cancel</Button>
+              <Button size="sm" onClick={handleConfirmHealthcareWork} data-testid="button-healthcare-work-confirm">Confirm</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (hospitalFormOpen) {
     return (
@@ -6048,6 +6138,40 @@ function Step16HealthDeclarations({ formData, updateFormData }: StepProps) {
               ))}
             </div>
           </div>
+
+          {(formData.healthWorkHealthcare as string) === "Yes" && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-primary">Add details</p>
+              <div className="border rounded-md overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-primary text-primary-foreground">
+                      <th className="text-left p-2 font-medium">Name</th>
+                      <th className="text-left p-2 font-medium">Role</th>
+                      <th className="text-left p-2 font-medium">Details</th>
+                      <th className="text-left p-2 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {healthcareWorkEntries.map((h, i) => (
+                      <tr key={i} className="border-t">
+                        <td className="p-2">{h.name}</td>
+                        <td className="p-2">{h.role}</td>
+                        <td className="p-2">{h.details}</td>
+                        <td className="p-2">
+                          <div className="flex gap-1">
+                            <Button variant="outline" size="sm" onClick={() => handleEditHealthcareWork(i)} data-testid={`button-edit-healthcare-work-${i}`}>Edit</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteHealthcareWork(i)} data-testid={`button-delete-healthcare-work-${i}`}>Delete</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleAddHealthcareWork} data-testid="button-add-healthcare-work">Add</Button>
+            </div>
+          )}
 
           <div className="space-y-2">
             <p className="text-sm">Does any applicant intend to work, study or train within aged care or disability care while in Australia?</p>
