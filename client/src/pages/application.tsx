@@ -7542,6 +7542,58 @@ function Step17CharacterDeclarations({ formData, updateFormData }: StepProps) {
   );
 }
 
+function Step18VisaHistory({ formData, updateFormData }: StepProps) {
+  const visaHistoryQuestions = [
+    { key: "visaHeldVisa", detailsKey: "visaHeldVisaDetails", text: "Has the applicant held or does the applicant currently hold a visa to Australia or any other country?" },
+    { key: "visaNonComplied", detailsKey: "visaNonCompliedDetails", text: "Has the applicant ever been in Australia or any other country and not complied with visa conditions or departed outside their authorised period of stay?" },
+    { key: "visaRefusedCancelled", detailsKey: "visaRefusedCancelledDetails", text: "Has the applicant ever had a visa for Australia or any other country refused or cancelled?" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-primary" data-testid="text-step18-title">Visa history</h2>
+      <Card>
+        <CardContent className="p-6 space-y-6">
+          {visaHistoryQuestions.map((q) => (
+            <div key={q.key}>
+              <div className="space-y-2">
+                <p className="text-sm">{q.text}</p>
+                <div className="flex gap-4">
+                  {["Yes", "No"].map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name={q.key}
+                        value={opt}
+                        checked={(formData[q.key] as string) === opt}
+                        onChange={(e) => updateFormData({ [q.key]: e.target.value })}
+                        data-testid={`radio-${q.key}-${opt.toLowerCase()}`}
+                      />
+                      <span className="text-sm">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {(formData[q.key] as string) === "Yes" && (
+                <div className="mt-3">
+                  <Label className="text-sm">Give details</Label>
+                  <Textarea
+                    value={(formData[q.detailsKey] as string) || ""}
+                    onChange={(e) => updateFormData({ [q.detailsKey]: e.target.value })}
+                    rows={4}
+                    className="mt-1"
+                    data-testid={`textarea-${q.key}-details`}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function ApplicationPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -7879,6 +7931,8 @@ export default function ApplicationPage() {
         return <Step16HealthDeclarations formData={formData} updateFormData={updateFormData} />;
       case 17:
         return <Step17CharacterDeclarations formData={formData} updateFormData={updateFormData} />;
+      case 18:
+        return <Step18VisaHistory formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Card>
