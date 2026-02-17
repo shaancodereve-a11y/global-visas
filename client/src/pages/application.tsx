@@ -7681,6 +7681,7 @@ export default function ApplicationPage() {
   const [formData, setFormData] = useState<FormData>({});
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [showDeclarationWarning, setShowDeclarationWarning] = useState(false);
 
   const { data: application, isLoading } = useQuery<Application>({
     queryKey: ["/api/applications", params.id],
@@ -7936,6 +7937,20 @@ export default function ApplicationPage() {
       }
     }
 
+    if (currentStep === 20) {
+      const declKeys = [
+        "declReadUnderstood", "declCompleteCorrect", "declFraudulentRefusal", "declFraudulentCancellation",
+        "declInformChanges", "declPrivacyNotice", "declPersonalInfo", "declNoFurtherStay",
+        "declNoStudyTraining", "declLeaveAustralia", "declFingerprints", "declFingerprintsLawEnforcement",
+        "declLawEnforcementConsent", "declNoWork", "declBiometricConsent", "declUnlawfulNonCitizen"
+      ];
+      const hasNo = declKeys.some((k) => (formData[k] as string) === "No");
+      if (hasNo) {
+        setShowDeclarationWarning(true);
+        return;
+      }
+    }
+
     let newStep = currentStep + 1;
     if (newStep === 10) newStep = 11;
     if (newStep >= 13 && newStep <= 15) newStep = 16;
@@ -7950,6 +7965,19 @@ export default function ApplicationPage() {
       }
     );
   }, [currentStep, formData, saveMutation, toast, validateStep3]);
+
+  const handleDeclarationConfirm = useCallback(() => {
+    setShowDeclarationWarning(false);
+    const newStep = 20;
+    saveMutation.mutate(
+      { formData, currentStep: newStep },
+      {
+        onSuccess: () => {
+          toast({ title: "Step 20 complete", description: "Moving to the review page." });
+        },
+      }
+    );
+  }, [formData, saveMutation, toast]);
 
   const handlePrint = () => {
     window.print();
@@ -8079,6 +8107,21 @@ export default function ApplicationPage() {
           </Button>
         </div>
       </div>
+
+      <Dialog open={showDeclarationWarning} onOpenChange={setShowDeclarationWarning}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-primary">Warning!</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            The applicant has selected 'No' to one or more questions on the page. If the applicant has answered these questions correctly, click 'Confirm' to proceed, otherwise click 'Cancel' to review the answers on the page before submitting this application.
+          </p>
+          <DialogFooter className="flex justify-between gap-2 sm:justify-between">
+            <Button variant="outline" onClick={() => setShowDeclarationWarning(false)} data-testid="button-declaration-cancel">Cancel</Button>
+            <Button onClick={handleDeclarationConfirm} data-testid="button-declaration-confirm">Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
