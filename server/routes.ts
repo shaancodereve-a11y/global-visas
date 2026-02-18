@@ -3,6 +3,8 @@ import { type Server } from "http";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import bcrypt from "bcryptjs";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -73,6 +75,15 @@ export async function registerRoutes(
       },
     })
   );
+
+  app.get("/api-docs.html", (_req: Request, res: Response) => {
+    const filePath = path.resolve(import.meta.dirname, "..", "client", "public", "api-docs.html");
+    if (fs.existsSync(filePath)) {
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send("API docs not found");
+    }
+  });
 
   registerObjectStorageRoutes(app);
 
