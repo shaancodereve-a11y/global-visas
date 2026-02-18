@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Visas - API Documentation for n8n Automation</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; background: #f8f9fa; color: #333; }
+  h1 { color: #0C51AC; border-bottom: 3px solid #02ACE2; padding-bottom: 10px; }
+  h2 { color: #0C51AC; margin-top: 40px; border-bottom: 1px solid #ddd; padding-bottom: 8px; }
+  h3 { color: #02ACE2; }
+  .endpoint { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 15px 0; }
+  .method { display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: bold; color: #fff; font-size: 13px; margin-right: 10px; }
+  .get { background: #28a745; }
+  .post { background: #007bff; }
+  .patch { background: #fd7e14; }
+  .delete { background: #dc3545; }
+  .url { font-family: 'Courier New', monospace; font-size: 15px; font-weight: bold; color: #333; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  .key { color: #9cdcfe; }
+  .string { color: #ce9178; }
+  .note { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+  .important { background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+  .success { background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 12px 16px; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { border: 1px solid #ddd; padding: 10px 14px; text-align: left; }
+  th { background: #0C51AC; color: #fff; }
+  tr:nth-child(even) { background: #f2f2f2; }
+  code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 13px; }
+  .print-btn { background: #0C51AC; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+  .print-btn:hover { background: #02ACE2; }
+  @media print { .no-print { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+
+<div class="no-print" style="margin-bottom: 20px;">
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<h1>Global Visas - API Documentation</h1>
+<p><strong>For n8n Automation Integration</strong></p>
+<p><strong>Base URL:</strong> <code>https://dev88.space</code></p>
+<p><strong>Authentication Method:</strong> Session-based (cookie). All requests after login must include the session cookie.</p>
+<p><strong>Date:</strong> February 2026</p>
+
+<hr>
+
+<h2>1. Admin Login</h2>
+<div class="endpoint">
+  <span class="method post">POST</span>
+  <span class="url">/api/auth/admin-login</span>
+  <p>Authenticates an admin user and returns a session cookie.</p>
+  <h3>Request</h3>
+<pre>{
+  <span class="key">"email"</span>: <span class="string">"shaan.codereve@gmail.com"</span>,
+  <span class="key">"password"</span>: <span class="string">"admin"</span>
+}</pre>
+  <h3>Response</h3>
+<pre>{
+  <span class="key">"id"</span>: <span class="string">"ad9ea782-..."</span>,
+  <span class="key">"email"</span>: <span class="string">"shaan.codereve@gmail.com"</span>,
+  <span class="key">"firstName"</span>: <span class="string">"Admin"</span>,
+  <span class="key">"lastName"</span>: <span class="string">"User"</span>,
+  <span class="key">"role"</span>: <span class="string">"admin"</span>,
+  <span class="key">"emailVerified"</span>: true
+}</pre>
+  <div class="important"><strong>Important:</strong> Save the <code>connect.sid</code> cookie from this response. Include it in ALL subsequent requests.</div>
+</div>
+
+<h2>2. Get All Applications</h2>
+<div class="endpoint">
+  <span class="method get">GET</span>
+  <span class="url">/api/admin/applications</span>
+  <p>Returns all applications with user details. Requires admin session.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <h3>Response</h3>
+<pre>[
+  {
+    <span class="key">"id"</span>: <span class="string">"d5a977ad-..."</span>,
+    <span class="key">"trn"</span>: <span class="string">"G8FORYQORB"</span>,
+    <span class="key">"userId"</span>: <span class="string">"5dfc7b78-..."</span>,
+    <span class="key">"status"</span>: <span class="string">"draft"</span>,
+    <span class="key">"currentStep"</span>: 3,
+    <span class="key">"formData"</span>: { ... },
+    <span class="key">"adminNotes"</span>: null,
+    <span class="key">"submittedAt"</span>: null,
+    <span class="key">"createdAt"</span>: <span class="string">"2026-02-16T22:04:27.367Z"</span>,
+    <span class="key">"user"</span>: {
+      <span class="key">"firstName"</span>: <span class="string">"John"</span>,
+      <span class="key">"lastName"</span>: <span class="string">"Doe"</span>,
+      <span class="key">"email"</span>: <span class="string">"john@example.com"</span>
+    }
+  }
+]</pre>
+</div>
+
+<h2>3. Get Single Application</h2>
+<div class="endpoint">
+  <span class="method get">GET</span>
+  <span class="url">/api/admin/applications/:id</span>
+  <p>Returns a single application by ID with full details.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <h3>Example</h3>
+  <p><code>GET /api/admin/applications/d5a977ad-c5ba-4edb-8cc4-2a1e7d4ce07c</code></p>
+</div>
+
+<h2>4. Update Application Status</h2>
+<div class="endpoint">
+  <span class="method patch">PATCH</span>
+  <span class="url">/api/admin/applications/:id/status</span>
+  <p>Updates the status of an application and optionally adds admin notes.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <h3>Request</h3>
+<pre>{
+  <span class="key">"status"</span>: <span class="string">"approved"</span>,
+  <span class="key">"adminNotes"</span>: <span class="string">"Application approved after document verification"</span>
+}</pre>
+  <h3>Available Status Values</h3>
+  <table>
+    <tr><th>Status</th><th>Description</th></tr>
+    <tr><td><code>draft</code></td><td>Application is being filled out by applicant</td></tr>
+    <tr><td><code>pending</code></td><td>Application submitted, awaiting review</td></tr>
+    <tr><td><code>under_review</code></td><td>Application is being reviewed by admin</td></tr>
+    <tr><td><code>approved</code></td><td>Application has been approved</td></tr>
+    <tr><td><code>rejected</code></td><td>Application has been rejected</td></tr>
+    <tr><td><code>additional_info_required</code></td><td>More information needed from applicant</td></tr>
+  </table>
+</div>
+
+<h2>5. Delete Application</h2>
+<div class="endpoint">
+  <span class="method delete">DELETE</span>
+  <span class="url">/api/admin/applications/:id</span>
+  <p>Permanently deletes an application and all associated documents.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <div class="important"><strong>Warning:</strong> This action cannot be undone. All documents attached to this application will also be deleted.</div>
+</div>
+
+<h2>6. Get Dashboard Statistics</h2>
+<div class="endpoint">
+  <span class="method get">GET</span>
+  <span class="url">/api/admin/stats</span>
+  <p>Returns application statistics for the admin dashboard.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <h3>Response</h3>
+<pre>{
+  <span class="key">"total"</span>: 5,
+  <span class="key">"draft"</span>: 2,
+  <span class="key">"pending"</span>: 1,
+  <span class="key">"under_review"</span>: 1,
+  <span class="key">"approved"</span>: 1,
+  <span class="key">"rejected"</span>: 0,
+  <span class="key">"additional_info_required"</span>: 0
+}</pre>
+</div>
+
+<h2>7. Get Documents for an Application</h2>
+<div class="endpoint">
+  <span class="method get">GET</span>
+  <span class="url">/api/documents/:applicationId</span>
+  <p>Returns all documents uploaded for a specific application.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+  <h3>Response</h3>
+<pre>[
+  {
+    <span class="key">"id"</span>: <span class="string">"doc-uuid-..."</span>,
+    <span class="key">"applicationId"</span>: <span class="string">"app-uuid-..."</span>,
+    <span class="key">"name"</span>: <span class="string">"passport.pdf"</span>,
+    <span class="key">"category"</span>: <span class="string">"travel_document"</span>,
+    <span class="key">"objectPath"</span>: <span class="string">"..."</span>,
+    <span class="key">"createdAt"</span>: <span class="string">"2026-02-16T..."</span>
+  }
+]</pre>
+  <h3>Document Categories</h3>
+  <table>
+    <tr><th>Category</th><th>Type</th></tr>
+    <tr><td><code>travel_document</code></td><td>Required</td></tr>
+    <tr><td><code>national_id</code></td><td>Required</td></tr>
+    <tr><td><code>previous_travel</code></td><td>Required</td></tr>
+    <tr><td><code>family_register</code></td><td>Recommended</td></tr>
+    <tr><td><code>tourism_evidence</code></td><td>Recommended</td></tr>
+    <tr><td><code>financial_evidence</code></td><td>Recommended</td></tr>
+  </table>
+</div>
+
+<h2>8. Check Current Session</h2>
+<div class="endpoint">
+  <span class="method get">GET</span>
+  <span class="url">/api/auth/me</span>
+  <p>Returns the currently authenticated user. Useful for verifying the session is still active.</p>
+  <h3>Headers</h3>
+  <p><code>Cookie: connect.sid=&lt;session_cookie&gt;</code></p>
+</div>
+
+<hr>
+
+<h2>n8n Setup Tips</h2>
+<div class="success">
+  <h3>How to Use in n8n</h3>
+  <ol>
+    <li>Use the <strong>HTTP Request</strong> node for all API calls</li>
+    <li>For the login call, enable <strong>"Send Cookies"</strong> and <strong>"Save Cookies"</strong> in the HTTP Request node settings</li>
+    <li>The session cookie will automatically carry forward to all subsequent requests in the workflow</li>
+    <li>Always start your workflow with the <strong>Admin Login</strong> call first</li>
+    <li>Chain other API calls after the login node</li>
+  </ol>
+</div>
+
+<div class="note">
+  <h3>Workflow Example</h3>
+  <p><strong>Auto-approve workflow:</strong> Login &rarr; Get All Applications &rarr; Filter pending ones &rarr; Update Status to "under_review" or "approved"</p>
+  <p><strong>Notification workflow:</strong> Login &rarr; Get All Applications &rarr; Filter new submissions &rarr; Send email/Slack notification</p>
+  <p><strong>Stats reporting:</strong> Login &rarr; Get Dashboard Stats &rarr; Send daily report via email</p>
+</div>
+
+<hr>
+
+<h2>Admin Credentials</h2>
+<div class="important">
+  <p><strong>Email:</strong> shaan.codereve@gmail.com</p>
+  <p><strong>Password:</strong> admin</p>
+  <p><strong>Note:</strong> Admin password auto-resets to "admin" on every server restart.</p>
+</div>
+
+<p style="color: #999; margin-top: 40px; font-size: 12px; text-align: center;">Global Visas &copy; 2026 | API Documentation | Confidential</p>
+
+</body>
+</html>
