@@ -313,7 +313,14 @@ export async function registerRoutes(
 
       const { formData, currentStep, status } = req.body;
       const updateData: Record<string, unknown> = {};
-      if (formData !== undefined) updateData.formData = formData;
+      if (formData !== undefined) {
+        const sanitized = { ...formData, groupProcessing: "no" };
+        delete sanitized.groupAlreadyCreated;
+        delete sanitized.groupId;
+        delete sanitized.groupName;
+        delete sanitized.groupType;
+        updateData.formData = sanitized;
+      }
       if (currentStep !== undefined) updateData.currentStep = currentStep;
       if (status !== undefined) updateData.status = status;
 

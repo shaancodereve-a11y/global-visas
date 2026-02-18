@@ -325,12 +325,18 @@ export default function AdminPage() {
                               {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "-"}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 flex-wrap">
                                 <Button variant="outline" size="sm" onClick={() => setLocation(`/admin/application/${app.id}`)} data-testid={`button-view-${app.id}`}>
                                   View
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => openStatusDialog(app)} data-testid={`button-manage-${app.id}`}>
                                   Manage
+                                </Button>
+                                <Button size="sm" className="bg-emerald-600 text-white border-emerald-600" data-testid={`button-biometrics-${app.id}`} onClick={() => toast({ title: "Biometrics", description: `Biometrics action for application #${app.id} - feature coming soon.` })}>
+                                  Biometrics
+                                </Button>
+                                <Button size="sm" className="bg-amber-500 text-white border-amber-500" data-testid={`button-request-info-${app.id}`} onClick={() => toast({ title: "Request Info", description: `Request further information for application #${app.id} - feature coming soon.` })}>
+                                  Request Info
                                 </Button>
                                 <Button variant="ghost" size="icon" onClick={() => setDeleteApp(app)} data-testid={`button-delete-${app.id}`}>
                                   <Trash2 className="h-4 w-4 text-destructive" />

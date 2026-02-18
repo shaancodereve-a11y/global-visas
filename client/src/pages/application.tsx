@@ -357,7 +357,6 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
   const visaStream = formData.visaStream as string | undefined;
   const reasons = (formData.visitReasons as string[]) || [];
   const [selectedReason, setSelectedReason] = useState("");
-  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [streamWarningOpen, setStreamWarningOpen] = useState(false);
   const [pendingReason, setPendingReason] = useState("");
 
@@ -613,48 +612,15 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
                       <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p>Select Yes if this application is part of a group of applications being lodged together.</p>
+                      <p>This application is not part of a group of applications.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
                 <p className="text-sm mb-3">Is this application being lodged as part of a group of applications?</p>
-                <RadioGroup
-                  value={(formData.groupProcessing as string) || ""}
-                  onValueChange={(val) => updateFormData({ groupProcessing: val })}
-                  className="flex items-center gap-6"
-                  data-testid="radio-group-processing"
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="yes" id="group-yes" data-testid="radio-group-yes" />
-                    <Label htmlFor="group-yes" className="text-sm cursor-pointer">Yes</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="no" id="group-no" data-testid="radio-group-no" />
-                    <Label htmlFor="group-no" className="text-sm cursor-pointer">No</Label>
-                  </div>
-                </RadioGroup>
-
-                {formData.groupProcessing === "yes" && (
-                  <div className="mt-4 space-y-3">
-                    <Button variant="outline" size="sm" onClick={() => setGroupDialogOpen(true)} data-testid="button-select-group">
-                      Select group
-                    </Button>
-
-                    {formData.groupAlreadyCreated === "yes" && Boolean(formData.groupId) && (
-                      <p className="text-sm text-muted-foreground">
-                        Group ID: <span className="font-medium text-foreground">{String(formData.groupId)}</span>
-                      </p>
-                    )}
-                    {formData.groupAlreadyCreated === "no" && Boolean(formData.groupName) && (
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Group name: <span className="font-medium text-foreground">{String(formData.groupName)}</span></p>
-                        {Boolean(formData.groupType) && (
-                          <p>Group type: <span className="font-medium text-foreground">{String(formData.groupType)}</span></p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-2" data-testid="group-processing-no">
+                  <Checkbox checked={true} disabled className="pointer-events-none" />
+                  <Label className="text-sm text-muted-foreground">No</Label>
+                </div>
               </div>
 
               <div className="border-t pt-4">
@@ -853,13 +819,6 @@ function Step2ApplicationContext({ formData, updateFormData }: StepProps) {
           )}
         </CardContent>
       </Card>
-
-      <GroupDetailsDialog
-        open={groupDialogOpen}
-        onOpenChange={setGroupDialogOpen}
-        formData={formData}
-        updateFormData={updateFormData}
-      />
 
       <Dialog open={streamWarningOpen} onOpenChange={setStreamWarningOpen}>
         <DialogContent className="sm:max-w-md">
@@ -8004,19 +7963,10 @@ function StepReview({ formData }: StepProps) {
                 <span className="text-sm">{((formData.visitReasons as string[]) || []).join(", ") || "Not provided"}</span>
               </div>
               {field("Significant dates", "significantDates")}
-              {yesNo("Group processing", "groupProcessing")}
-              {formData.groupProcessing === "yes" && (
-                <>
-                  {yesNo("Group already created", "groupAlreadyCreated")}
-                  {formData.groupAlreadyCreated === "yes" && field("Group ID", "groupId")}
-                  {formData.groupAlreadyCreated === "no" && (
-                    <>
-                      {field("Group name", "groupName")}
-                      {field("Group type", "groupType")}
-                    </>
-                  )}
-                </>
-              )}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-muted-foreground">Group processing</span>
+                <span className="text-sm">No</span>
+              </div>
               {yesNo("Special category of entry", "specialCategory")}
               {formData.specialCategory === "yes" && field("Special category type", "specialCategoryType")}
             </>
@@ -8306,6 +8256,11 @@ export default function ApplicationPage() {
   useEffect(() => {
     if (application) {
       const fd = (application.formData || {}) as FormData;
+      fd.groupProcessing = "no";
+      delete fd.groupAlreadyCreated;
+      delete fd.groupId;
+      delete fd.groupName;
+      delete fd.groupType;
       setFormData(fd);
       setCurrentStep(application.currentStep);
     }
