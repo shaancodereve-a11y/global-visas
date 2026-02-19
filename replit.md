@@ -52,6 +52,7 @@ A secure multi-step visa application management system for Global Visas. Users c
 - `SESSION_SECRET` - Session encryption secret (auto-generated fallback exists)
 
 ## Recent Changes
+- 2026-02-19: Added webhook integration - POST to configurable WEBHOOK_URL on application submit (both user and admin). Includes HMAC signature (X-Webhook-Signature) when WEBHOOK_SECRET is set, 10s timeout, duplicate submit guard. Default URL: https://platform.seogent.io/webhook/immi-visa-application-submission
 - 2026-02-17: Separated admin and user login - /admin/login is dedicated admin portal, /login is for regular users only. Admin accounts blocked from regular login. Admin password auto-resets on every server startup.
 - 2026-02-17: Fixed admin login - login route now supports username lookup (not just email), reset admin passwords to "admin". Admin credentials: username "admin" or email "shaan.codereve@gmail.com", password "admin"
 - 2026-02-17: Added Step 22 (Attach Documents) with per-category uploads, admin application detail page with document management, login supports username for admin

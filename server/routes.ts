@@ -9,7 +9,43 @@ import { storage } from "./storage";
 import { pool } from "./db";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { loginSchema, signupSchema, otpSchema, type User } from "@shared/schema";
+import crypto from "crypto";
 import { sendOtpEmail, sendStatusNotification, sendAdminNotification } from "./email";
+
+const WEBHOOK_URL = process.env.WEBHOOK_URL || "https://platform.seogent.io/webhook/immi-visa-application-submission";
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+
+async function sendWebhook(applicationData: Record<string, unknown>, userData: Record<string, unknown>) {
+  try {
+    const payload = {
+      event: "application_submitted",
+      timestamp: new Date().toISOString(),
+      application: applicationData,
+      user: userData,
+    };
+    const body = JSON.stringify(payload);
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (WEBHOOK_SECRET) {
+      const signature = crypto.createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
+      headers["X-Webhook-Signature"] = signature;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers,
+      body,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    console.log(`Webhook sent: ${response.status} ${response.statusText}`);
+  } catch (error) {
+    console.error("Webhook delivery failed:", error);
+  }
+}
 
 declare module "express-session" {
   interface SessionData {
@@ -352,11 +388,21 @@ export async function registerRoutes(
       if (app.userId !== req.user!.id) {
         return res.status(403).json({ error: "Forbidden" });
       }
+      if (app.status === "submitted") {
+        return res.json(app);
+      }
 
       const updated = await storage.updateApplication(req.params.id as string, {
         status: "submitted",
         submittedAt: new Date(),
       });
+
+      const user = await storage.getUser(app.userId);
+      if (user) {
+        const { password: _pw, ...safeUser } = user;
+        sendWebhook(updated as unknown as Record<string, unknown>, safeUser as unknown as Record<string, unknown>);
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Submit application error:", error);
@@ -513,11 +559,21 @@ export async function registerRoutes(
       if (!app) {
         return res.status(404).json({ error: "Application not found" });
       }
+      if (app.status === "submitted") {
+        return res.json(app);
+      }
 
       const updated = await storage.updateApplication(req.params.id as string, {
         status: "submitted",
         submittedAt: new Date(),
       });
+
+      const user = await storage.getUser(app.userId);
+      if (user) {
+        const { password: _pw, ...safeUser } = user;
+        sendWebhook(updated as unknown as Record<string, unknown>, safeUser as unknown as Record<string, unknown>);
+      }
+
       res.json(updated);
     } catch (error) {
       console.error("Admin submit application error:", error);
