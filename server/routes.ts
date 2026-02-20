@@ -15,14 +15,67 @@ import { sendOtpEmail, sendStatusNotification, sendAdminNotification } from "./e
 const WEBHOOK_URL = process.env.WEBHOOK_URL || "https://platform.seogent.io/webhook/immi-visa-application-submission";
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
 
+function normalizeValue(val: unknown): string | unknown {
+  if (val === null || val === undefined) return "";
+  if (typeof val === "boolean") return val ? "Yes" : "No";
+  if (typeof val === "string") {
+    const lower = val.toLowerCase().trim();
+    if (lower === "yes" || lower === "true") return "Yes";
+    if (lower === "no" || lower === "false") return "No";
+    return val;
+  }
+  return val;
+}
+
+function flattenWebhookPayload(applicationData: Record<string, unknown>, userData: Record<string, unknown>): Record<string, unknown> {
+  const formData = (applicationData.formData || {}) as Record<string, unknown>;
+
+  const flat: Record<string, unknown> = {
+    event: "application_submitted",
+    timestamp: new Date().toISOString(),
+
+    application_id: applicationData.id,
+    application_status: applicationData.status,
+    application_current_step: applicationData.currentStep,
+    application_admin_notes: applicationData.adminNotes || "",
+    application_submitted_at: applicationData.submittedAt || "",
+    application_created_at: applicationData.createdAt || "",
+
+    applicant_id: userData.id,
+    applicant_email: userData.email,
+    applicant_username: userData.username || "",
+    applicant_full_name: userData.fullName || "",
+    applicant_phone: userData.phone || "",
+    applicant_role: userData.role || "user",
+    applicant_verified: userData.verified === true ? "Yes" : "No",
+  };
+
+  for (const [key, value] of Object.entries(formData)) {
+    const normalized = normalizeValue(value);
+    if (typeof normalized === "string") {
+      flat[key] = normalized;
+    } else if (Array.isArray(value)) {
+      if (value.length === 0) {
+        flat[key] = "";
+      } else if (typeof value[0] === "object") {
+        flat[key] = JSON.stringify(value);
+        flat[`${key}_count`] = value.length;
+      } else {
+        flat[key] = value.map(v => normalizeValue(v)).join(", ");
+      }
+    } else if (typeof value === "object" && value !== null) {
+      flat[key] = JSON.stringify(value);
+    } else {
+      flat[key] = String(value ?? "");
+    }
+  }
+
+  return flat;
+}
+
 async function sendWebhook(applicationData: Record<string, unknown>, userData: Record<string, unknown>) {
   try {
-    const payload = {
-      event: "application_submitted",
-      timestamp: new Date().toISOString(),
-      application: applicationData,
-      user: userData,
-    };
+    const payload = flattenWebhookPayload(applicationData, userData);
     const body = JSON.stringify(payload);
 
     const headers: Record<string, string> = { "Content-Type": "application/json" };
