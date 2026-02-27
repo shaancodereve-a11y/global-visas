@@ -43,11 +43,10 @@ function flattenWebhookPayload(applicationData: Record<string, unknown>, userDat
 
     applicant_id: userData.id,
     applicant_email: userData.email,
-    applicant_username: userData.username || "",
-    applicant_full_name: userData.fullName || "",
-    applicant_phone: userData.phone || "",
-    applicant_role: userData.role || "user",
-    applicant_verified: userData.verified === true ? "Yes" : "No",
+    applicant_username: userData.email || "",
+    applicant_full_name: [userData.firstName, userData.lastName].filter(Boolean).join(" ") || "",
+    applicant_role: userData.role || "applicant",
+    applicant_verified: userData.emailVerified === true ? "Yes" : "No",
   };
 
   for (const [key, value] of Object.entries(formData)) {
