@@ -76,6 +76,7 @@ async function sendWebhook(applicationData: Record<string, unknown>, userData: R
   try {
     const payload = flattenWebhookPayload(applicationData, userData);
     const body = JSON.stringify(payload);
+    console.log("Webhook payload:", JSON.stringify(payload, null, 2));
 
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (WEBHOOK_SECRET) {
